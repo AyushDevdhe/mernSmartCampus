@@ -4,9 +4,18 @@ require("dotenv").config();
 
 const app = express();
 
-app.use(express.json());
+//importing the routes here
+const userRoutes = require("./routes/userRoutes");
+
 connectDB();
 
+//middlewares
+app.use(express.json());
+
+//routes here
+app.use("/api/users", userRoutes);
+
+//test api
 app.get("/", (req, res) => {
   res.send("backend app is running");
 });
