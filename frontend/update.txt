@@ -1,0 +1,17 @@
+What each folder will do
+
+pages/auth/
+Keep all auth-related pages here.
+
+components/common/
+Reusable UI parts. Same input/button/layout can be reused in all 4 pages.
+
+services/
+All API calling logic later. For now keep auth-related requests planned here.
+
+utils/
+Validation logic like email format, password rules, confirm password check.
+
+
+assets/
+Icons, images, logos, background images.
