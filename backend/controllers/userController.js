@@ -5,6 +5,7 @@ const otpModel = require("../models/otpModel");
 //importing dependencies here
 const otpGenerator = require("otp-generator");
 const mailSender = require("../utils/mailSender");
+const jwt = require("jsonwebtoken");
 
 exports.sendOTP = async (req, res) => {
   try {
@@ -139,15 +140,61 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(403).json({
+      return res.status(400).json({
         success: false,
         message: "all input fields required",
       });
     }
+
+    const user = await userModel.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "no user exists with this email",
+      });
+    }
+
+    //veryfying the passwords here
+    const isPasswordMatch = await user.comparePassword(password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "invalid credentials",
+      });
+    }
+
+    //generating the payload for signing jwt token
+    const payload = {
+      email: user.email,
+      id: user._id,
+    };
+
+    //generating the token here
+    const token = await jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "10d",
+    });
+
+    //setting the cookie with token here
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: false,
+      path: "/",
+      sameSite: "lax",
+      maxAge: 10 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "user logged in ",
+      token: token,
+    });
   } catch (err) {
-    return res.status().json({
+    return res.status(500).json({
       success: false,
       message: "internal server error in login controller",
+      error: err.message,
     });
   }
 };
