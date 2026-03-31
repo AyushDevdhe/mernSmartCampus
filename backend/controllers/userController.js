@@ -133,3 +133,21 @@ exports.signUp = async (req, res) => {
     });
   }
 };
+
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(403).json({
+        success: false,
+        message: "all input fields required",
+      });
+    }
+  } catch (err) {
+    return res.status().json({
+      success: false,
+      message: "internal server error in login controller",
+    });
+  }
+};
