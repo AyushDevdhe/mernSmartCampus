@@ -18,15 +18,6 @@ exports.sendOTP = async (req, res) => {
       });
     }
 
-    // check if user already exists
-    const existingUser = await userModel.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: "User already registered",
-      });
-    }
-
     // generate OTP
     const otpToSend = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
@@ -194,6 +185,76 @@ exports.login = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "internal server error in login controller",
+      error: err.message,
+    });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "all input fields required",
+      });
+    }
+
+    //checking if user exists or not
+    const user = await userModel.findOne({ email: email });
+
+    if (!user) {
+      return res.status().json({
+        success: false,
+        message: "no such user exists",
+      });
+    }
+
+    //verifying the otp here
+    const recentOTP = await otpModel.findOne({ email }).sort({ createdAt: -1 });
+
+    if (!recentOTP) {
+      return res.status(400).json({
+        success: false,
+        message: "no otp found",
+      });
+    }
+
+    // check expiry (5 minutes)
+    const currentTime = Date.now();
+    const otpCreatedTime = new Date(recentOTP.createdAt).getTime();
+
+    if (currentTime - otpCreatedTime > 5 * 60 * 1000) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired",
+      });
+    }
+
+    if (recentOTP.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    //changing the password
+    user.password = newPassword;
+
+    await user.save();
+
+    //deleting the otp here
+    await otpModel.deleteMany({ email: email });
+
+    return res.status(200).json({
+      success: true,
+      message: "password updated successfully",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "internal server error in change password controller",
       error: err.message,
     });
   }
