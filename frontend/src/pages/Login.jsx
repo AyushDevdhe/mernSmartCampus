@@ -13,7 +13,9 @@ export const Login = () => {
       // console.log(res.data.Search || []);
 
       if (res.data.success) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
         alert("Login Successful");
+        window.location.href = "/dashboard"; //dashboard loc
       } else {
         alert(res.data.message);
       }

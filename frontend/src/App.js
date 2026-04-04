@@ -7,6 +7,7 @@ import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
+import Dashboard from "./pages/Dashboard.jsx";
 
 function App() {
   const router = createBrowserRouter([
@@ -14,6 +15,7 @@ function App() {
     { path: "forgotpassword", element: <ForgotPassword /> },
     { path: "login", element: <Login /> },
     { path: "signup", element: <Signup /> },
+    {path: "dashboard", element: <Dashboard />}
   ]);
 
   return (

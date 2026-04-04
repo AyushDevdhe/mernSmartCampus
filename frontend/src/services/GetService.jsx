@@ -5,14 +5,14 @@ const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
 });
 
-export const signupApi = (data) =>{
-  return api.post("/sign-up", data);
+export const signupApi = (data) => {
+  return api.post("/users/sign-up", data);
 };
 
-export const sendOtpApi = (email) =>{
-  return api.post("/send-otp", {email});
-}
+export const sendOtpApi = (email) => {
+  return api.post("/users/send-otp", { email });
+};
 
 export const loginApi = (data) => {
-  return api.post("/login", data);
+  return api.post("/users/login", data);
 };
