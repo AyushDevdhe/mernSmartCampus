@@ -180,6 +180,7 @@ exports.login = async (req, res) => {
       success: true,
       message: "user logged in ",
       token: token,
+      user: user   //added for data display on Dashboard.jsx
     });
   } catch (err) {
     return res.status(500).json({
