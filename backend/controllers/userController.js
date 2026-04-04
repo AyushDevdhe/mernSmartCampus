@@ -179,13 +179,48 @@ exports.login = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "user logged in ",
-      token: token,
-      user: user   //added for data display on Dashboard.jsx
+      user: user, //added for data display on Dashboard.jsx
     });
   } catch (err) {
     return res.status(500).json({
       success: false,
       message: "internal server error in login controller",
+      error: err.message,
+    });
+  }
+};
+
+exports.getUser = async (req, res) => {
+  try {
+    //fetching user id from middleware, which fetches the id from jwt token
+    const { id } = req.user;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "no user id fetched from the token",
+      });
+    }
+
+    //fetching user detais from db
+    const user = await userModel.findById(id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "no user found with this id",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "user details fetched successfully",
+      user: user,
+    });
+  } catch (err) {
+    return res.status().json({
+      success: false,
+      message: "internal server error in get user controller",
       error: err.message,
     });
   }
