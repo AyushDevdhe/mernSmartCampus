@@ -1,43 +1,26 @@
 import "./App.css";
+import { Provider } from "./components/ui/provider.jsx";
 
-import {
-  createBrowserRouter,
-  RouterProvider,
-  createRoutesFromElements,
-  Route,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import Login from './pages/Login.jsx';
-import Home from './pages/Home.jsx';
-import Signup from './pages/Signup.jsx';
-import ForgotPassword from './pages/ForgotPassword.jsx';
+import Login from "./pages/Login.jsx";
+import Home from "./pages/Home.jsx";
+import Signup from "./pages/Signup.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 
 function App() {
-
   const router = createBrowserRouter([
-    {
-      path: "/",
-      element: <Home></Home>,
-    },
-
-    {
-      path: "forgotpassword",
-      element: <ForgotPassword></ForgotPassword>,
-    },
-
-    {
-      path: "login",
-      element: <Login></Login>,
-    },
-
-    {
-      path: "signup",
-      element: <Signup></Signup>,
-    },
-
+    { path: "/", element: <Home /> },
+    { path: "forgotpassword", element: <ForgotPassword /> },
+    { path: "login", element: <Login /> },
+    { path: "signup", element: <Signup /> },
   ]);
 
-  return <RouterProvider router = {router}></RouterProvider>
+  return (
+    <Provider>
+      <RouterProvider router={router} />
+    </Provider>
+  );
 }
 
 export default App;
