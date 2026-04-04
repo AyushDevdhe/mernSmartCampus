@@ -110,9 +110,7 @@ export const Dashboard = () => {
           </Toolbar>
         </AppBar>
 
-        <p>
-          Name: {user.firstName} {user.lastName}
-        </p>
+        <p>Name: {user.firstName} {user.lastName}</p>
         <p>PRN: {user.prn}</p>
         <p>Email: {user.email}</p>
 
