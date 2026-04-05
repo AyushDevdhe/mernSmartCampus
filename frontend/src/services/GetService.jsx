@@ -1,18 +1,18 @@
 import axios from "axios";
 
 const api = axios.create({
-  //   baseURL: "http://localhost:4000/api",
+
   baseURL: process.env.REACT_APP_BASE_URL,
 });
 
 export const signupApi = (data) =>{
-  return api.post("/sign-up", data);
+  return api.post("/users/sign-up", data);
 };
 
 export const sendOtpApi = (email) =>{
-  return api.post("/send-otp", {email});
+  return api.post("/users/send-otp", {email});
 }
 
 export const loginApi = (data) => {
-  return api.post("/login", data);
+  return api.post("/users/login", data);
 };
