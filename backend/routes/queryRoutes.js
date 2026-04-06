@@ -5,8 +5,12 @@ const router = express.Router();
 const { verifyJWT } = require("../middlewares/verifyJWT");
 
 //importing controllers here
-const { createQuery } = require("../controllers/queryController");
+const {
+  createQuery,
+  getUserQueries,
+} = require("../controllers/queryController");
 
 router.post("/create", verifyJWT, createQuery);
+router.get("/get-by-user", verifyJWT, getUserQueries);
 
 module.exports = router;

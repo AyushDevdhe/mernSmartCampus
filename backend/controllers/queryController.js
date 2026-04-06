@@ -44,3 +44,40 @@ exports.createQuery = async (req, res) => {
     });
   }
 };
+
+exports.getUserQueries = async (req, res) => {
+  try {
+    const { id } = req.user;
+
+    if (!id) {
+      return res.status().json({
+        success: false,
+        message: "no user id fetched from the middleware",
+      });
+    }
+
+    const user = await userModel.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "no such logged in user found",
+      });
+    }
+
+    //fetching the queries from db here
+    const queries = await queryModel.find({ user: user._id });
+
+    return res.status(200).json({
+      success: true,
+      message: "all queries fetched successfully",
+      queries: queries,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "internal server error in get query controller",
+      error: err.message,
+    });
+  }
+};
