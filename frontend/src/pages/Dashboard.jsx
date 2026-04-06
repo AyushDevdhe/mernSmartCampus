@@ -14,13 +14,11 @@ import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
+// import Button from "@mui/material/Button";
+import ListItemButton from "@mui/material/ListItemButton";
 
 export const Dashboard = () => {
-
   const user = JSON.parse(localStorage.getItem("user"));
-
-
-
 
   const Search = styled("div")(({ theme }) => ({
     position: "relative",
@@ -65,6 +63,10 @@ export const Dashboard = () => {
   }));
 
   const [open, setOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("profile");
+  const [queryType, setQueryType] = useState("");
+  const [priority, setPriority] = useState("");
+  const [description, setDescription] = useState("");
 
   return (
     <>
@@ -110,43 +112,129 @@ export const Dashboard = () => {
           </Toolbar>
         </AppBar>
 
-        <p>Name: {user.firstName} {user.lastName}</p>
-        <p>PRN: {user.prn}</p>
-        <p>Email: {user.email}</p>
+        {activeSection === "profile" && (
+          <>
+            <p>
+              Name: {user.firstName} {user.lastName}
+            </p>
+            <p>PRN: {user.prn}</p>
+            <p>Email: {user.email}</p>
+          </>
+        )}
+
+        {activeSection === "queries" && (
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              Add Query
+            </Typography>
+
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Query Type
+            </Typography>
+
+            <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+              <button onClick={() => setQueryType("Academic")}>Academic</button>
+              <button onClick={() => setQueryType("Technical")}>
+                Technical
+              </button>
+              <button onClick={() => setQueryType("Attendance")}>
+                Attendance
+              </button>
+              <button onClick={() => setQueryType("Exam")}>Exam</button>
+            </Box>
+
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Priority
+            </Typography>
+
+            <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+              <button onClick={() => setPriority("Low")}>Low</button>
+              <button onClick={() => setPriority("Medium")}>Medium</button>
+              <button onClick={() => setPriority("High")}>High</button>
+            </Box>
+
+            <textarea
+              rows="5"
+              cols="50"
+              placeholder="Enter query description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+
+            <br />
+            <br />
+            <p>Selected Type: {queryType}</p>
+            <p>Selected Priority: {priority}</p>
+
+            <button>Submit Query</button>
+          </Box>
+        )}
 
         <Drawer anchor="left" open={open} onClose={() => setOpen(false)}>
           <List sx={{ width: 250 }}>
-            <ListItem button>
-              <ListItemText primary="Wifi" />
-            </ListItem>
-            <ListItem button>
-              <ListItemText primary="Electricity" />
-            </ListItem>
-            <ListItem button>
-              <ListItemText primary="Cleaning" />
-            </ListItem>
-            <ListItem button>
-              <ListItemText primary="Exam Queries"></ListItemText>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  setActiveSection("profile");
+                  setOpen(false);
+                }}
+              >
+                <ListItemText primary="Profile" />
+              </ListItemButton>
             </ListItem>
 
-            <ListItem button>
-              <ListItemText primary="Result Queries"></ListItemText>
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => {
+                  setActiveSection("queries");
+                  setOpen(false);
+                }}
+              >
+                <ListItemText primary="Queries" />
+              </ListItemButton>
             </ListItem>
 
-            <ListItem button>
-              <ListItemText primary="Subject Related Queries"></ListItemText>
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Exam" />
+              </ListItemButton>
             </ListItem>
 
-            <ListItem button>
-              <ListItemText primary="Teacher Related Queries"></ListItemText>
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Subject" />
+              </ListItemButton>
             </ListItem>
 
-            <ListItem button>
-              <ListItemText primary="Attendance Queries"></ListItemText>
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Teacher Related Queries" />
+              </ListItemButton>
             </ListItem>
 
-            <ListItem button>
-              <ListItemText primary="Feedback"></ListItemText>
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Attendance" />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Safety" />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="College Erp System" />
+              </ListItemButton>
+            </ListItem>
+
+
+            <ListItem disablePadding>
+              <ListItemButton>
+                <ListItemText primary="Feedback" />
+              </ListItemButton>
             </ListItem>
           </List>
         </Drawer>
