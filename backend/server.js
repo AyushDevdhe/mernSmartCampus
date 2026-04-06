@@ -8,6 +8,7 @@ const app = express();
 
 //importing the routes here
 const userRoutes = require("./routes/userRoutes");
+const queryRoutes = require("./routes/queryRoutes");
 
 connectDB();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 
 //routes here
 app.use("/api/users", userRoutes);
+app.use("/api/queries", queryRoutes);
 
 //test api
 app.get("/", (req, res) => {
