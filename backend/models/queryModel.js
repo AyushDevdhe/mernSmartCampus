@@ -15,6 +15,12 @@ const querySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    priority: {
+      type: String,
+      enum: ["High", "Medium", "Low"],
+      required: true,
+      default: "Low",
+    },
   },
   {
     timestamps: true,
