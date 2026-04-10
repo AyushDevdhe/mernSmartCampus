@@ -15,6 +15,8 @@ import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import NavBar from "./components/NavBar.jsx";
+import Layout from "./components/Layout.jsx";
 
 //importing components here
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -25,6 +27,7 @@ import { getUser } from "./services/GetService.jsx";
 
 function App() {
   const dispatch = useDispatch();
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -41,31 +44,43 @@ function App() {
   }, []);
 
   const router = createBrowserRouter([
-    { path: "/", element: <Home /> },
-    { path: "forgotpassword", element: <ForgotPassword /> },
     {
-      path: "login",
-      element: (
-        <PublicRoute>
-          <Login />
-        </PublicRoute>
-      ),
-    },
-    {
-      path: "signup",
-      element: (
-        <PublicRoute>
-          <Signup />
-        </PublicRoute>
-      ),
-    },
-    {
-      path: "dashboard",
-      element: (
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      ),
+      path: "/",
+      element: <Layout />,
+      children: [
+        { index: true, element: <Home /> },
+        {
+          path: "dashboard",
+          element: (
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          ),
+        },
+
+        {
+          path: "login",
+          element: (
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          ),
+        },
+
+        {
+          path: "signup",
+          element: (
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          ),
+        },
+
+        {
+          path: "forgotpassword",
+          element: <ForgotPassword />,
+        },
+      ],
     },
   ]);
 
