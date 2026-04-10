@@ -218,7 +218,7 @@ exports.getUser = async (req, res) => {
       user: user,
     });
   } catch (err) {
-    return res.status().json({
+    return res.status(500).json({
       success: false,
       message: "internal server error in get user controller",
       error: err.message,
@@ -241,7 +241,7 @@ exports.changePassword = async (req, res) => {
     const user = await userModel.findOne({ email: email });
 
     if (!user) {
-      return res.status().json({
+      return res.status(404).json({
         success: false,
         message: "no such user exists",
       });

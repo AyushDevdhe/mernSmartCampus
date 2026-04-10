@@ -18,8 +18,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import ListItemButton from "@mui/material/ListItemButton";
 
 export const Dashboard = () => {
-  
-
   const Search = styled("div")(({ theme }) => ({
     position: "relative",
     borderRadius: theme.shape.borderRadius,
@@ -112,7 +110,7 @@ export const Dashboard = () => {
           </Toolbar>
         </AppBar>
 
-        {activeSection === "profile" && (
+        {/* {activeSection === "profile" && (
           <>
             <p>
               Name: {user.firstName} {user.lastName}
@@ -120,7 +118,7 @@ export const Dashboard = () => {
             <p>PRN: {user.prn}</p>
             <p>Email: {user.email}</p>
           </>
-        )}
+        )} */}
 
         {activeSection === "queries" && (
           <Box sx={{ p: 3 }}>
@@ -229,7 +227,6 @@ export const Dashboard = () => {
                 <ListItemText primary="College Erp System" />
               </ListItemButton>
             </ListItem>
-
 
             <ListItem disablePadding>
               <ListItemButton>

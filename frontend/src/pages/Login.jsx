@@ -10,7 +10,6 @@ export const Login = () => {
     try {
       const res = await loginApi({ email, password });
       console.log(res.data);
-      // console.log(res.data.Search || []);
 
       if (res.data.success) {
         localStorage.setItem("user", JSON.stringify(res.data.user));

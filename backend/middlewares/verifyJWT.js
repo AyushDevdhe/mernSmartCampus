@@ -15,11 +15,9 @@ exports.verifyJWT = async (req, res, next) => {
 
     req.user = decoded;
 
-    console.log(decoded);
-
     next();
   } catch (err) {
-    return res.status().json({
+    return res.status(500).json({
       success: false,
       message: "internal server error in verifyJWT middleware",
       error: err.message,
