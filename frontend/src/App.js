@@ -6,7 +6,7 @@ import { Provider } from "./components/ui/provider.jsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 //importing redux stuff here
-import { setUserData } from "../src/app/userSlices.js";
+import { setUserData, setIsAuthenticated } from "../src/app/userSlices.js";
 import { useDispatch } from "react-redux";
 
 //importing pages here
@@ -15,6 +15,9 @@ import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+
+//importing components here
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 ///importing apis here
 import { getUser } from "./services/GetService.jsx";
@@ -28,6 +31,7 @@ function App() {
         console.log(res);
         if (res) {
           dispatch(setUserData(res?.data?.user));
+          dispatch(setIsAuthenticated(true));
         }
       } catch (err) {
         console.error(err.response?.data);
@@ -41,7 +45,14 @@ function App() {
     { path: "forgotpassword", element: <ForgotPassword /> },
     { path: "login", element: <Login /> },
     { path: "signup", element: <Signup /> },
-    { path: "dashboard", element: <Dashboard /> },
+    {
+      path: "dashboard",
+      element: (
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
+    },
   ]);
 
   return (
