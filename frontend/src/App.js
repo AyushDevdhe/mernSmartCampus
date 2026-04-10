@@ -18,6 +18,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 
 //importing components here
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import PublicRoute from "./components/PublicRoute.jsx";
 
 ///importing apis here
 import { getUser } from "./services/GetService.jsx";
@@ -28,7 +29,6 @@ function App() {
     const fetchUser = async () => {
       try {
         const res = await getUser();
-        console.log(res);
         if (res) {
           dispatch(setUserData(res?.data?.user));
           dispatch(setIsAuthenticated(true));
@@ -43,8 +43,22 @@ function App() {
   const router = createBrowserRouter([
     { path: "/", element: <Home /> },
     { path: "forgotpassword", element: <ForgotPassword /> },
-    { path: "login", element: <Login /> },
-    { path: "signup", element: <Signup /> },
+    {
+      path: "login",
+      element: (
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
+      ),
+    },
+    {
+      path: "signup",
+      element: (
+        <PublicRoute>
+          <Signup />
+        </PublicRoute>
+      ),
+    },
     {
       path: "dashboard",
       element: (

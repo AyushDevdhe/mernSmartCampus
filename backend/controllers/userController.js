@@ -2,6 +2,7 @@
 //importing models here
 const userModel = require("../models/userModel");
 const otpModel = require("../models/otpModel");
+const queryModel = require("../models/queryModel");
 //importing dependencies here
 const otpGenerator = require("otp-generator");
 const mailSender = require("../utils/mailSender");
@@ -211,6 +212,8 @@ exports.getUser = async (req, res) => {
         message: "no user found with this id",
       });
     }
+
+    //fetching their queries from the db
 
     return res.status(200).json({
       success: true,
