@@ -1,9 +1,37 @@
 ///all the imports here
+//importing dependencies here
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
+//importing apis here
+import { getQueriesByUser } from "../services/QueryApis";
+
 const Dashboard = () => {
+  ///all the dependencies here
   const user = useSelector((state) => state.user.data);
-  console.log(user.queries);
+
+  ///all the states here
+  //state to hold user queries
+  const [userQueries, setUserQueries] = useState([]);
+
+  ///all the use effects here
+  //effect to fetch queries from backend whenever user changes
+  useEffect(() => {
+    const fetchQueries = async () => {
+      try {
+        const res = await getQueriesByUser();
+
+        if (res) {
+          console.log(res);
+          setUserQueries(res?.data?.queries);
+        }
+      } catch (err) {
+        console.error(err.response?.data);
+      }
+    };
+
+    fetchQueries();
+  }, [user]);
 
   return (
     <div>
@@ -19,7 +47,7 @@ const Dashboard = () => {
           </tr>
         </thead>
         <tbody className="divide-y text-white">
-          {user?.queries?.map((query) => {
+          {userQueries?.map((query) => {
             return (
               <tr>
                 <td>{query.title}</td>
