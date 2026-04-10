@@ -2,6 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
+  withCredentials: true,
 });
 
 export const signupApi = (data) => {
@@ -15,3 +16,4 @@ export const sendOtpApi = (email) => {
 export const loginApi = (data) => {
   return api.post("/users/login", data);
 };
+

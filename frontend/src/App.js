@@ -1,4 +1,5 @@
 import "./App.css";
+import { useEffect } from "react";
 import { Provider } from "./components/ui/provider.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -9,7 +10,10 @@ import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 
+
 function App() {
+ 
+
   const router = createBrowserRouter([
     { path: "/", element: <Home /> },
     { path: "forgotpassword", element: <ForgotPassword /> },

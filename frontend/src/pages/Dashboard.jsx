@@ -18,7 +18,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import ListItemButton from "@mui/material/ListItemButton";
 
 export const Dashboard = () => {
-  const user = JSON.parse(localStorage.getItem("user"));
+  
 
   const Search = styled("div")(({ theme }) => ({
     position: "relative",
