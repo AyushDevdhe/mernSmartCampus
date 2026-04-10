@@ -3,6 +3,9 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 
+//importing redux stuff here
+import { useSelector } from "react-redux";
+
 // import React from 'react';
 import { useState } from "react";
 import { styled, alpha } from "@mui/material/styles";
@@ -18,6 +21,10 @@ import SearchIcon from "@mui/icons-material/Search";
 import ListItemButton from "@mui/material/ListItemButton";
 
 export const Dashboard = () => {
+  const user = useSelector((state) => state.user.data);
+
+  console.log(user);
+
   const Search = styled("div")(({ theme }) => ({
     position: "relative",
     borderRadius: theme.shape.borderRadius,
