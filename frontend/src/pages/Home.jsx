@@ -20,9 +20,7 @@ function Home() {
         </section>
         <div class="container">
           <div class="navbar-brand">
-            <a href="index">
-              <p>SmartCampus</p>
-            </a>
+            <p>SmartCampus</p>
           </div>
 
           <br />
@@ -35,11 +33,6 @@ function Home() {
               <li class="nav-item">
                 <a href="signup" class="nav-link">
                   Signup
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="forgotpassword" class="nav-link">
-                  Forgot Password
                 </a>
               </li>
             </ul>

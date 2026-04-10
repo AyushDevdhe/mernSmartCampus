@@ -20,3 +20,7 @@ export const loginApi = (data) => {
 export const getUser = () => {
   return api.get("/users/get");
 };
+
+export const logOut = () => {
+  return api.post("/users/logout");
+};

@@ -7,7 +7,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 //importing redux stuff here
 import { setUserData, setIsAuthenticated } from "../src/app/userSlices.js";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 //importing pages here
 import Login from "./pages/Login.jsx";

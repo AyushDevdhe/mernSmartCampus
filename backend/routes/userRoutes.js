@@ -8,6 +8,7 @@ const {
   login,
   changePassword,
   getUser,
+  logOut,
 } = require("../controllers/userController");
 
 //importing middlewares here
@@ -18,5 +19,6 @@ router.post("/sign-up", signUp);
 router.post("/login", login);
 router.get("/get", verifyJWT, getUser);
 router.put("/forgot-password", changePassword);
+router.post("/logout", logOut);
 
 module.exports = router;

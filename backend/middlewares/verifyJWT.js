@@ -5,7 +5,7 @@ exports.verifyJWT = async (req, res, next) => {
     const token = req.cookies.jwt;
 
     if (!token) {
-      return res.status().json({
+      return res.status(401).json({
         success: false,
         message: "no token found",
       });
