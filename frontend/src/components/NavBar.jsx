@@ -5,7 +5,7 @@ import { clearUserData } from "../app/userSlices";
 import { logOut } from "../services/GetService";
 import { useDispatch } from "react-redux";
 
-const Navbar = () => {
+const Navbar = ({ toggleSideBar }) => {
   const user = useSelector((state) => state.user.data);
   const dispatch = useDispatch();
 
@@ -23,10 +23,14 @@ const Navbar = () => {
 
   return (
     <div className="flex justify-between">
-      {/* for logo and labelling */}
-      <Link to={"/"}>
-        <div>Smart Campus</div>
-      </Link>
+      <div>
+        {/* the burger menu for sidebar toggling */}
+        <button onClick={toggleSideBar}>☰</button>
+        {/* for logo and labelling */}
+        <Link to={"/"}>
+          <div>Smart Campus</div>
+        </Link>
+      </div>
       {/* for dropdown or login / sign up buttons */}
       {user ? (
         <div className="relative group">
