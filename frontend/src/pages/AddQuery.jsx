@@ -29,10 +29,12 @@ export const AddQuery = () => {
     }
 
     setErrors(newError);
+    return Object.keys(newError).length === 0;
   }
 
-  const handleSubmit =async() =>{
-    if(!valiDateInput){
+  const handleSubmit =async(e) =>{
+    e.preventDefault();
+    if(!valiDateInput()){
         return;
     }
 
