@@ -17,6 +17,7 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import NavBar from "./components/NavBar.jsx";
 import Layout from "./components/Layout.jsx";
+import AddQuery from "./pages/AddQuery.jsx";
 
 //importing components here
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -49,6 +50,17 @@ function App() {
       element: <Layout />,
       children: [
         { index: true, element: <Home /> },
+
+        {
+          path: "add-query",
+          element: (
+            <ProtectedRoute>
+              <AddQuery/>
+            </ProtectedRoute>
+          ),
+        },
+
+
         {
           path: "dashboard",
           element: (

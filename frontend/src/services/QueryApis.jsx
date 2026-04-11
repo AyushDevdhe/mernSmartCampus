@@ -5,6 +5,16 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export const getQueriesByUser = () => {
-  return api.get("/queries/get-by-user");
+
+export const addQuery = (data) =>{
+  return api.post("/queries/create", data, {
+  });
 };
+
+
+export const getQueriesByUser = () => {
+  return api.get("/queries/get-by-user", {
+  });
+};
+
+

@@ -1,7 +1,9 @@
 import { useSelector } from "react-redux";
-
+import { Link } from "react-router-dom";
 const SideBar = ({ open, setOpen }) => {
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+
+
 
   return (
     <>
@@ -24,7 +26,9 @@ const SideBar = ({ open, setOpen }) => {
         {isAuthenticated ? (
           <div className="flex flex-col mt-2">
             <div className="px-4 py-2  cursor-pointer">Dashboard</div>
-            <div className="px-4 py-2  cursor-pointer">Add Queries</div>
+            <div className="px-4 py-2  cursor-pointer">
+              <Link to="/add-query">Add Query</Link>
+            </div>
             <div className="px-4 py-2 cursor-pointer">Profile</div>
           </div>
         ) : (
