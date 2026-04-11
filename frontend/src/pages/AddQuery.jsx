@@ -25,16 +25,16 @@ export const AddQuery = () => {
         newError.description = "Description is required";
     }
     else if(description.trim().length < 10){
-        newError.description = "DEscription empasis must be more than 10 words";
+        newError.description = "DEscription empasis must be more than 10 words"; 
     }
 
     setErrors(newError);
-    return Object.keys(newError).length === 0;
+    return Object.keys(newError).length === 0;  //this line returns true if the form has no errors and false if it has.
   }
 
   const handleSubmit =async(e) =>{
-    e.preventDefault();
-    if(!valiDateInput()){
+    e.preventDefault(); //stopped page reload
+    if(!valiDateInput()){  //function call
         return;
     }
 
