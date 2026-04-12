@@ -21,11 +21,11 @@ export const AddQuery = () => {
     if (!priority.trim()) {
       newError.priority = "Priority Level is required";
     }
-
-    if (!description.trim()) {
-      newError.description = "Description is required";
-    } else if (description.trim().length < 10) {
-      newError.description = "Description must be at least 10 characters long";
+    if(!description.trim()){
+        newError.description = "Description is required";
+    }
+    else if(description.trim().length < 10){
+        newError.description = "Description empasis must be more than 10 words"; 
     }
 
     setErrors(newError);
