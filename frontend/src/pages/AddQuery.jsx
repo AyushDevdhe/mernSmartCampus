@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import GetService from './services/GetService.jsx';
 import { addQuery } from "../services/QueryApis";
 
 export const AddQuery = () => {
@@ -12,49 +11,50 @@ export const AddQuery = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const valiDateInput = () =>{
+  const validateInput = () => {
     const newError = {};
 
-    if(!queryType.trim()){
-        newError.queryType ="Query Type is required";
+    if (!queryType.trim()) {
+      newError.queryType = "Query Type is required";
     }
-    if(!priority.trim()){
-        newError.priority = "Priority Level is required";
+
+    if (!priority.trim()) {
+      newError.priority = "Priority Level is required";
     }
-    if(!description.trim()){
-        newError.description = "Description is required";
-    }
-    else if(description.trim().length < 10){
-        newError.description = "DEscription empasis must be more than 10 words"; 
+
+    if (!description.trim()) {
+      newError.description = "Description is required";
+    } else if (description.trim().length < 10) {
+      newError.description = "Description must be at least 10 characters long";
     }
 
     setErrors(newError);
-    return Object.keys(newError).length === 0;  //this line returns true if the form has no errors and false if it has.
-  }
+    return Object.keys(newError).length === 0;
+  };
 
-  const handleSubmit =async(e) =>{
-    e.preventDefault(); //stopped page reload
-    if(!valiDateInput()){  //function call
-        return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateInput()) {
+      return;
     }
 
     setIsSubmitting(true);
 
     try {
-        const response = await addQuery({
-            title: queryType,
-            description: description,
-            priority: priority
-        });
+      await addQuery({
+        title: queryType,
+        description,
+        priority,
+      });
 
-        navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error) {
-        console.log(error);
-        
-    }finally{
-        setIsSubmitting(false);
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="Add Queries Container">
@@ -62,10 +62,8 @@ export const AddQuery = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="query-form">
-          <label htmlFor="queryType"></label>
           <select
             name="queryType"
-            id="queryType"
             value={queryType}
             onChange={(e) => setQueryType(e.target.value)}
           >
@@ -80,28 +78,23 @@ export const AddQuery = () => {
         </div>
 
         <div className="query-form">
-          <label htmlFor="priority"></label>
           <select
             name="priority"
             value={priority}
-            id="priority"
             onChange={(e) => setPriority(e.target.value)}
           >
             <option value="">Select Priority Level</option>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
-            {/* <option value="Critical">Critical</option> */}
           </select>
         </div>
 
         <div className="query-form">
-          <label htmlFor="description"></label>
           <textarea
             name="description"
-            id="description"
             value={description}
-            placeholder="Please emphasize your issue in detail"
+            placeholder="Please describe your issue in detail"
             onChange={(e) => setDescription(e.target.value)}
           ></textarea>
         </div>
@@ -112,7 +105,6 @@ export const AddQuery = () => {
       </form>
     </div>
   );
-
-}
+};
 
 export default AddQuery;

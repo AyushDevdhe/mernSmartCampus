@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 const SideBar = ({ open, setOpen }) => {
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
 
-
-
   return (
     <>
       {/* Overlay */}
@@ -25,11 +23,24 @@ const SideBar = ({ open, setOpen }) => {
 
         {isAuthenticated ? (
           <div className="flex flex-col mt-2">
-            <div className="px-4 py-2  cursor-pointer">Dashboard</div>
-            <div className="px-4 py-2  cursor-pointer">
+            <div
+              className="px-4 py-2  cursor-pointer"
+              onClick={() => setOpen(false)}
+            >
+              <Link to={"/dashboard"}> Dashboard</Link>
+            </div>
+            <div
+              className="px-4 py-2  cursor-pointer"
+              onClick={() => setOpen(false)}
+            >
               <Link to="/add-query">Add Query</Link>
             </div>
-            <div className="px-4 py-2 cursor-pointer">Profile</div>
+            <div
+              className="px-4 py-2 cursor-pointer"
+              onClick={() => setOpen(false)}
+            >
+              Profile
+            </div>
           </div>
         ) : (
           <div></div>
