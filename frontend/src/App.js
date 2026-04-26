@@ -14,17 +14,23 @@ import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
+import Dashboard from "./pages/Dashboard.jsx"; // Student Dashboard
+import SupervisorDashboard from "./pages/SupervisorDashboard.jsx"; // ADD THIS
+import AdminDashboard from "./pages/AdminDashboard.jsx"; // ADD THIS
 import NavBar from "./components/NavBar.jsx";
 import Layout from "./components/Layout.jsx";
 import AddQuery from "./pages/AddQuery.jsx";
+import UpdateQuery from "./pages/UpdateQuery.jsx";
 
 //importing components here
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
+import RoleBasedRoute from "./components/RoleBasedRoute.jsx"; // ADD THIS (will create)
 
 ///importing apis here
 import { getUser } from "./services/GetService.jsx";
+import QueryDetails from "./pages/QueryDetails.jsx";
+import "./css/common.css";
 
 function App() {
   const dispatch = useDispatch();
@@ -55,18 +61,47 @@ function App() {
           path: "add-query",
           element: (
             <ProtectedRoute>
-              <AddQuery/>
+              <AddQuery />
             </ProtectedRoute>
           ),
         },
 
+        {
+          path: "update-query/:id",
+          element: (
+            <ProtectedRoute>
+              <UpdateQuery />
+            </ProtectedRoute>
+          ),
+        },
 
+        // Student Dashboard (existing Dashboard component)
         {
           path: "dashboard",
           element: (
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
+          ),
+        },
+
+        // Supervisor Dashboard - NEW
+        {
+          path: "supervisor-dashboard",
+          element: (
+            <RoleBasedRoute allowedRoles={["supervisor"]}>
+              <SupervisorDashboard />
+            </RoleBasedRoute>
+          ),
+        },
+
+        // Admin Dashboard - NEW
+        {
+          path: "admin-dashboard",
+          element: (
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </RoleBasedRoute>
           ),
         },
 
@@ -91,6 +126,15 @@ function App() {
         {
           path: "forgotpassword",
           element: <ForgotPassword />,
+        },
+
+        {
+          path: "query/:id",
+          element: (
+            <ProtectedRoute>
+              <QueryDetails />
+            </ProtectedRoute>
+          ),
         },
       ],
     },

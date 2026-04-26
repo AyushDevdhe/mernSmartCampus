@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+//importing middlewares here (MUST come BEFORE using verifyJWT)
+const { verifyJWT } = require("../middlewares/verifyJWT");
+
 //importing controllers here
 const {
   signUp,
@@ -9,16 +12,20 @@ const {
   changePassword,
   getUser,
   logOut,
+  getAllSupervisors,
+  getEscalatedQueries,
 } = require("../controllers/userController");
 
-//importing middlewares here
-const { verifyJWT } = require("../middlewares/verifyJWT");
-
+// Public routes (no authentication needed)
 router.post("/send-otp", sendOTP);
 router.post("/sign-up", signUp);
 router.post("/login", login);
-router.get("/get", verifyJWT, getUser);
 router.put("/forgot-password", changePassword);
-router.post("/logout", logOut);
+
+// Protected routes (authentication required)
+router.get("/get", verifyJWT, getUser);
+router.post("/logout", verifyJWT, logOut);
+router.get("/supervisors", verifyJWT, getAllSupervisors);
+router.get("/escalated-queries", verifyJWT, getEscalatedQueries);
 
 module.exports = router;

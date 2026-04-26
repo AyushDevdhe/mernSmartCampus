@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import { signupApi } from "../services/GetService";
 import { sendOtpApi } from "../services/GetService";
+
 export const Signup = () => {
+  const navigate = useNavigate();
   const [firstName, registerfirstName] = useState("");
   const [lastName, registerlastName] = useState("");
   const [email, registerEmail] = useState("");
@@ -11,6 +13,8 @@ export const Signup = () => {
   const [prn, registerPrn] = useState("");
   const [otp, registerotp] = useState("");
   const [sentOtp, registerSentOtp] = useState(false);
+  // Role is now fixed to "student" for normal signup
+  const role = "student";
 
   const registerUser = async () => {
     try {
@@ -22,79 +26,90 @@ export const Signup = () => {
         alert("Enter OTP");
         return;
       }
+      if (!prn) {
+        alert("PRN is required for student registration");
+        return;
+      }
 
-      const res = await signupApi({
+      const payload = {
         firstName,
         lastName,
         email,
         password,
-        prn,
         otp,
-      });
+        role,
+        createdByAdmin: false, // Normal user, not created by admin
+      };
+
+      if (prn) {
+        payload.prn = prn;
+      }
+
+      const res = await signupApi(payload);
       console.log(res.data);
 
       if (res.data.success) {
-        alert("User Created Successfully");
+        alert("Student account created successfully!");
+        navigate("/login");
       } else {
         alert(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      console.log("Error: ", error.message);
-      console.log("Error Status: ", error.response.status);
-      console.log("Error Data: ", error.response.data);
+      alert(error.response?.data?.message || "Signup failed");
     }
   };
 
   const verify = async () => {
     try {
-      console.log("Clicked");
-
-      // alert("OTP Sent");
       const res = await sendOtpApi(email);
       console.log(res.data);
 
       if (res.data.success) {
-        alert("OTP Sent");
+        alert("OTP Sent! Check your email or server console.");
         registerSentOtp(true);
       } else {
         console.log(res.data.message);
       }
     } catch (error) {
       console.log(error);
-      console.log("Error: ", error.message);
-      console.log("Error Status: ", error.response.status);
-      console.log("Error Data: ", error.response.data);
+      alert(error.response?.data?.message || "Failed to send OTP");
     }
   };
 
   return (
-    <>
+    <div className="signup-container">
+      <h2>Student Sign Up</h2>
+      <p style={{ color: "#666", fontSize: "14px", marginBottom: "16px" }}>
+        Only student accounts can be created here. Supervisor and Admin accounts
+        must be created by an Admin.
+      </p>
+
       <input
         type="text"
         placeholder="First Name"
         onChange={(e) => registerfirstName(e.target.value)}
-      ></input>
+      />
 
       <input
         type="text"
         placeholder="Last Name"
         onChange={(e) => registerlastName(e.target.value)}
-      ></input>
+      />
 
       <input
         type="number"
-        placeholder="PRN"
+        placeholder="PRN (Required)"
         onChange={(e) => registerPrn(e.target.value)}
-      ></input>
+      />
 
       <input
         type="email"
         placeholder="E-Mail"
         onChange={(e) => registerEmail(e.target.value)}
-      ></input>
+      />
 
-      <button onClick={verify}>Send Otp</button>
+      <button onClick={verify}>Send OTP</button>
 
       {sentOtp && (
         <input
@@ -108,23 +123,26 @@ export const Signup = () => {
         type="password"
         placeholder="Password"
         onChange={(e) => registerPassword(e.target.value)}
-      ></input>
+      />
 
       <input
         type="password"
         placeholder="Confirm Password"
         onChange={(e) => registerConfirmPass(e.target.value)}
-      ></input>
+      />
 
       <button type="submit" onClick={registerUser}>
-        Sign Up
+        Sign Up as Student
       </button>
 
-      <h1>already have an account? login</h1>
-    </>
+      <h1
+        onClick={() => navigate("/login")}
+        style={{ cursor: "pointer", color: "blue" }}
+      >
+        Already have an account? Login
+      </h1>
+    </div>
   );
 };
 
 export default Signup;
-
-// Signup button blovked -> otp field -> otp verfivcation -> matched with backend -> signup button unblock

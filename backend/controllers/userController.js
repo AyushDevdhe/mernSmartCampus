@@ -48,30 +48,86 @@ exports.sendOTP = async (req, res) => {
       message: "OTP sent successfully",
     });
   } catch (err) {
+    console.error("Send OTP Error:", err);
     return res.status(500).json({
       success: false,
       message: "Error in sending OTP",
+      error: err.message,
     });
   }
 };
 
 exports.signUp = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, prn, otp } = req.body;
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      prn,
+      otp,
+      role,
+      createdByAdmin,
+    } = req.body;
 
-    if (!firstName || !lastName || !email || !password || !prn || !otp) {
+    console.log("Signup request body:", req.body);
+
+    // Basic validation for all users
+    if (!firstName || !lastName || !email || !password || !otp) {
       return res.status(400).json({
         success: false,
         message: "All input fields are required",
       });
     }
 
-    // check if user already exists
-    if (await userModel.findOne({ email })) {
+    // Set role - default to "student"
+    let userRole = "student";
+
+    // Role restriction logic
+    if (role && role.toLowerCase() !== "student") {
+      // Only admin can create supervisor or admin accounts
+      if (!createdByAdmin) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Only admin can create supervisor or admin accounts. Please sign up as student.",
+        });
+      }
+
+      // Validate role from admin request
+      if (["supervisor", "admin"].includes(role.toLowerCase())) {
+        userRole = role.toLowerCase();
+      }
+    }
+
+    console.log("User role determined:", userRole);
+
+    // PRN validation: Required only for students
+    if (userRole === "student" && !prn) {
+      return res.status(400).json({
+        success: false,
+        message: "PRN is required for student registration",
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: "User already exists",
       });
+    }
+
+    // For students, check if PRN is unique
+    if (userRole === "student" && prn) {
+      const existingUserWithPrn = await userModel.findOne({ prn });
+      if (existingUserWithPrn) {
+        return res.status(400).json({
+          success: false,
+          message: "User with this PRN already exists",
+        });
+      }
     }
 
     // verify OTP
@@ -102,23 +158,40 @@ exports.signUp = async (req, res) => {
       });
     }
 
-    // create user
-    const user = await userModel.create({
+    // Prepare user data
+    const userData = {
       firstName,
       lastName,
       email,
       password,
-      prn,
+      role: userRole,
+    };
+
+    if (userRole === "student" && prn) {
+      userData.prn = Number(prn);
+    }
+
+    console.log("Final userData before create:", {
+      ...userData,
+      password: "***",
     });
 
-    await otpModel.deleteMany({ email: email });
+    // create user
+    const user = await userModel.create(userData);
+
+    await otpModel.deleteMany({ email });
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
     return res.status(200).json({
       success: true,
       message: "User registered successfully",
-      user,
+      user: userResponse,
     });
   } catch (err) {
+    console.error("Signup Error FULL:", err);
     return res.status(500).json({
       success: false,
       message: "Internal server error in signup",
@@ -131,44 +204,50 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log("=== LOGIN ATTEMPT ===");
+    console.log("Email:", email);
+    console.log("Password received:", password ? "Yes" : "No");
+
     if (!email || !password) {
+      console.log("Missing email or password");
       return res.status(400).json({
         success: false,
         message: "all input fields required",
       });
     }
 
-    const user = await userModel.findOne({ email: email });
+    const user = await userModel.findOne({ email });
+    console.log("User found in DB:", user ? "Yes" : "No");
 
     if (!user) {
+      console.log("User not found for email:", email);
       return res.status(404).json({
         success: false,
         message: "no user exists with this email",
       });
     }
 
-    //veryfying the passwords here
     const isPasswordMatch = await user.comparePassword(password);
+    console.log("Password match:", isPasswordMatch);
 
     if (!isPasswordMatch) {
+      console.log("Password incorrect for:", email);
       return res.status(401).json({
         success: false,
         message: "invalid credentials",
       });
     }
 
-    //generating the payload for signing jwt token
     const payload = {
       email: user.email,
       id: user._id,
+      role: user.role,
     };
 
-    //generating the token here
-    const token = await jwt.sign(payload, process.env.JWT_SECRET, {
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "10d",
     });
 
-    //setting the cookie with token here
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: false,
@@ -177,12 +256,18 @@ exports.login = async (req, res) => {
       maxAge: 10 * 24 * 60 * 60 * 1000,
     });
 
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    console.log("Login successful for:", email);
+
     return res.status(200).json({
       success: true,
-      message: "user logged in ",
-      user: user, //added for data display on Dashboard.jsx
+      message: "user logged in",
+      user: userResponse,
     });
   } catch (err) {
+    console.error("Login Error:", err);
     return res.status(500).json({
       success: false,
       message: "internal server error in login controller",
@@ -193,7 +278,6 @@ exports.login = async (req, res) => {
 
 exports.getUser = async (req, res) => {
   try {
-    //fetching user id from middleware, which fetches the id from jwt token
     const { id } = req.user;
 
     if (!id) {
@@ -203,7 +287,6 @@ exports.getUser = async (req, res) => {
       });
     }
 
-    //fetching user detais from db
     const user = await userModel.findById(id).select("-password");
 
     if (!user) {
@@ -213,14 +296,13 @@ exports.getUser = async (req, res) => {
       });
     }
 
-    //fetching their queries from the db
-
     return res.status(200).json({
       success: true,
       message: "user details fetched successfully",
       user: user,
     });
   } catch (err) {
+    console.error("Get User Error:", err);
     return res.status(500).json({
       success: false,
       message: "internal server error in get user controller",
@@ -240,8 +322,7 @@ exports.changePassword = async (req, res) => {
       });
     }
 
-    //checking if user exists or not
-    const user = await userModel.findOne({ email: email });
+    const user = await userModel.findOne({ email });
 
     if (!user) {
       return res.status(404).json({
@@ -250,7 +331,6 @@ exports.changePassword = async (req, res) => {
       });
     }
 
-    //verifying the otp here
     const recentOTP = await otpModel.findOne({ email }).sort({ createdAt: -1 });
 
     if (!recentOTP) {
@@ -260,7 +340,6 @@ exports.changePassword = async (req, res) => {
       });
     }
 
-    // check expiry (5 minutes)
     const currentTime = Date.now();
     const otpCreatedTime = new Date(recentOTP.createdAt).getTime();
 
@@ -278,19 +357,17 @@ exports.changePassword = async (req, res) => {
       });
     }
 
-    //changing the password
     user.password = newPassword;
-
     await user.save();
 
-    //deleting the otp here
-    await otpModel.deleteMany({ email: email });
+    await otpModel.deleteMany({ email });
 
     return res.status(200).json({
       success: true,
       message: "password updated successfully",
     });
   } catch (err) {
+    console.error("Change Password Error:", err);
     return res.status(500).json({
       success: false,
       message: "internal server error in change password controller",
@@ -303,7 +380,7 @@ exports.logOut = async (req, res) => {
   try {
     res.clearCookie("jwt", {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       path: "/",
       sameSite: "lax",
     });
@@ -313,8 +390,58 @@ exports.logOut = async (req, res) => {
       message: "Logged out successfully",
     });
   } catch (err) {
+    console.error("Logout Error:", err);
     return res.status(500).json({
       success: false,
+      error: err.message,
+    });
+  }
+};
+
+
+// Get all supervisors (for admin)
+exports.getAllSupervisors = async (req, res) => {
+  try {
+    const supervisors = await userModel
+      .find({ role: "supervisor" })
+      .select("-password");
+    
+    return res.status(200).json({
+      success: true,
+      supervisors: supervisors,
+    });
+  } catch (err) {
+    console.error("Get Supervisors Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching supervisors",
+      error: err.message,
+    });
+  }
+};
+
+// Get escalated queries (42+ hours)
+exports.getEscalatedQueries = async (req, res) => {
+  try {
+    const fortyTwoHoursAgo = new Date(Date.now() - 42 * 60 * 60 * 1000);
+    
+    const escalatedQueries = await queryModel
+      .find({
+        status: { $ne: "Resolved" },
+        createdAt: { $lt: fortyTwoHoursAgo }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("assignedTo", "firstName lastName email");
+    
+    return res.status(200).json({
+      success: true,
+      escalatedQueries: escalatedQueries,
+    });
+  } catch (err) {
+    console.error("Get Escalated Queries Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching escalated queries",
       error: err.message,
     });
   }

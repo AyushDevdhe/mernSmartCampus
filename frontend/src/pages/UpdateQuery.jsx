@@ -1,15 +1,46 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { addQuery } from "../services/QueryApis";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { updateQuery, getQueriesByUser } from "../services/QueryApis";
 
-export const AddQuery = () => {
+export const UpdateQuery = () => {
   const navigate = useNavigate();
+  const { id } = useParams(); // Get query ID from URL
 
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
+
+  // Fetch the query data when component mounts
+  useEffect(() => {
+    const fetchQuery = async () => {
+      try {
+        const res = await getQueriesByUser();
+        const queries = res?.data?.queries;
+        const queryToEdit = queries?.find((q) => q._id === id);
+
+        if (queryToEdit) {
+          setTitle(queryToEdit.title);
+          setPriority(queryToEdit.priority);
+          setDescription(queryToEdit.description);
+        } else {
+          console.error("Query not found");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Error fetching query:", error);
+        navigate("/dashboard");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchQuery();
+    }
+  }, [id, navigate]);
 
   const validateInput = () => {
     const newError = {};
@@ -24,7 +55,7 @@ export const AddQuery = () => {
     if (!description.trim()) {
       newError.description = "Description is required";
     } else if (description.trim().length < 10) {
-      newError.description = "Description must be more than 10 characters"; // Fixed typo: words -> characters
+      newError.description = "Description must be more than 10 characters";
     }
 
     setErrors(newError);
@@ -41,7 +72,7 @@ export const AddQuery = () => {
     setIsSubmitting(true);
 
     try {
-      await addQuery({
+      await updateQuery(id, {
         title,
         description,
         priority,
@@ -49,16 +80,24 @@ export const AddQuery = () => {
 
       navigate("/dashboard");
     } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Failed to add query");
+      console.error("Error updating query:", error);
+      alert(error.response?.data?.message || "Failed to update query");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Loading query data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="Add Queries Container">
-      <h1>Add queries</h1>
+      <h1>Update Query</h1>
 
       <form onSubmit={handleSubmit}>
         <div className="query-form">
@@ -75,11 +114,7 @@ export const AddQuery = () => {
             <option value="Library">Library</option>
             <option value="Staff">Staff</option>
           </select>
-          {errors.title && (
-            <span className="error" style={{ color: "red", fontSize: "12px" }}>
-              {errors.title}
-            </span>
-          )}
+          {errors.title && <span className="error">{errors.title}</span>}
         </div>
 
         <div className="query-form">
@@ -93,11 +128,7 @@ export const AddQuery = () => {
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </select>
-          {errors.priority && (
-            <span className="error" style={{ color: "red", fontSize: "12px" }}>
-              {errors.priority}
-            </span>
-          )}
+          {errors.priority && <span className="error">{errors.priority}</span>}
         </div>
 
         <div className="query-form">
@@ -108,18 +139,24 @@ export const AddQuery = () => {
             onChange={(e) => setDescription(e.target.value)}
           ></textarea>
           {errors.description && (
-            <span className="error" style={{ color: "red", fontSize: "12px" }}>
-              {errors.description}
-            </span>
+            <span className="error">{errors.description}</span>
           )}
         </div>
 
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Query"}
+          {isSubmitting ? "Updating..." : "Update Query"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate("/dashboard")}
+          style={{ marginLeft: "10px", backgroundColor: "#666" }}
+        >
+          Cancel
         </button>
       </form>
     </div>
   );
 };
 
-export default AddQuery;
+export default UpdateQuery;
