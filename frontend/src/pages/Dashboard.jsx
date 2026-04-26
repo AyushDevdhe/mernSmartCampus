@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getQueriesByUser, deleteQuery } from "../services/QueryApis";
@@ -121,100 +121,115 @@ const Dashboard = () => {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {userQueries?.map((query) => (
-              <>
-                <tr key={query._id} className="hover:bg-gray-50">
-                  <td className="px-4 py-2">{query.title}</td>
-                  <td className="px-4 py-2">{query.description}</td>
-                  <td
-                    className={`px-4 py-2 ${getPriorityColor(query.priority)}`}
-                  >
-                    {query.priority}
-                  </td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`status-badge ${query.status?.toLowerCase()}`}
-                    >
-                      {query.status || "Pending"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <button
-                      onClick={() => toggleComments(query._id)}
-                      style={{
-                        marginRight: "8px",
-                        padding: "5px 10px",
-                        backgroundColor: "#8b5cf6",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      💬 Comments
-                    </button>
-                    <button
-                      onClick={() => handleEdit(query._id)}
-                      className="edit-btn"
-                      style={{
-                        marginRight: "8px",
-                        padding: "5px 10px",
-                        backgroundColor: "#4CAF50",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(query._id)}
-                      disabled={deletingId === query._id}
-                      className="delete-btn"
-                      style={{
-                        padding: "5px 10px",
-                        backgroundColor: "#f44336",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {deletingId === query._id ? "Deleting..." : "Delete"}
-                    </button>
-
-                    <button
-                      onClick={() => navigate(`/query/${query._id}`)}
-                      style={{
-                        marginRight: "8px",
-                        padding: "5px 10px",
-                        backgroundColor: "#3b82f6",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      👁️ View
-                    </button>
-                  </td>
-                </tr>
-                {expandedQueryId === query._id && (
-                  <tr>
+            {userQueries?.map((query) => {
+              const isResolved = query.status === "Resolved";
+              return (
+                <React.Fragment key={query._id}>
+                  <tr className="hover:bg-gray-50">
+                    <td className="px-4 py-2">{query.title}</td>
+                    <td className="px-4 py-2">{query.description}</td>
                     <td
-                      colSpan="5"
-                      style={{ padding: "16px", background: "#f9fafb" }}
+                      className={`px-4 py-2 ${getPriorityColor(query.priority)}`}
                     >
-                      <CommentSection
-                        queryId={query._id}
-                        queryTitle={query.title}
-                      />
+                      {query.priority}
+                    </td>
+                    <td className="px-4 py-2">
+                      <span
+                        className={`status-badge ${query.status?.toLowerCase()}`}
+                      >
+                        {query.status || "Pending"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2">
+                      {/* Comments Button - Hide for Resolved */}
+                      {!isResolved && (
+                        <button
+                          onClick={() => toggleComments(query._id)}
+                          style={{
+                            marginRight: "8px",
+                            padding: "5px 10px",
+                            backgroundColor: "#8b5cf6",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          💬 Comments
+                        </button>
+                      )}
+
+                      {/* Edit Button - Hide for Resolved */}
+                      {!isResolved && (
+                        <button
+                          onClick={() => handleEdit(query._id)}
+                          className="edit-btn"
+                          style={{
+                            marginRight: "8px",
+                            padding: "5px 10px",
+                            backgroundColor: "#4CAF50",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Edit
+                        </button>
+                      )}
+
+                      {/* Delete Button - Hide for Resolved */}
+                      {!isResolved && (
+                        <button
+                          onClick={() => handleDelete(query._id)}
+                          disabled={deletingId === query._id}
+                          className="delete-btn"
+                          style={{
+                            padding: "5px 10px",
+                            backgroundColor: "#f44336",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {deletingId === query._id ? "Deleting..." : "Delete"}
+                        </button>
+                      )}
+
+                      {/* View Button - Show for ALL queries */}
+                      <button
+                        onClick={() => navigate(`/query/${query._id}`)}
+                        style={{
+                          padding: "5px 10px",
+                          backgroundColor: "#3b82f6",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          marginLeft: "8px",
+                        }}
+                      >
+                        👁️ View
+                      </button>
                     </td>
                   </tr>
-                )}
-              </>
-            ))}
+                  {expandedQueryId === query._id && (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        style={{ padding: "16px", background: "#f9fafb" }}
+                      >
+                        <CommentSection
+                          queryId={query._id}
+                          queryTitle={query.title}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       )}
