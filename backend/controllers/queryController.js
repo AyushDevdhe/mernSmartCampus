@@ -1,7 +1,7 @@
 const userModel = require("../models/userModel");
 const queryModel = require("../models/queryModel");
 const { createNotification } = require("./notificationController");
-
+const mailSender = require("../utils/mailSender"); 
 exports.createQuery = async (req, res) => {
   try {
     const { id } = req.user;
@@ -171,7 +171,10 @@ exports.updateStatus = async (req, res) => {
       });
     }
 
-    const query = await queryModel.findById(queryId);
+    const query = await queryModel
+      .findById(queryId)
+      .populate("user", "firstName lastName email")
+      .populate("assignedTo", "firstName lastName email");
 
     if (!query) {
       return res.status(404).json({
@@ -180,8 +183,52 @@ exports.updateStatus = async (req, res) => {
       });
     }
 
+    const oldStatus = query.status;
     query.status = status;
     await query.save();
+
+    // Send email notification to student when query is resolved
+    if (status === "Resolved" && oldStatus !== "Resolved") {
+      const student = query.user;
+      const supervisor = query.assignedTo;
+
+      const emailSubject = "✅ Your Query has been Resolved!";
+      const emailBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+          <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 12px; margin-bottom: 20px;">
+            <h1 style="color: white; margin: 0;">✅ Query Resolved!</h1>
+          </div>
+          
+          <p style="font-size: 16px; color: #334155;">Dear <strong>${student.firstName} ${student.lastName}</strong>,</p>
+          
+          <p style="font-size: 16px; color: #334155;">Good news! Your query has been successfully resolved by our team.</p>
+          
+          <div style="background: #f0fdf4; padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #22c55e;">
+            <h3 style="margin: 0 0 8px 0; color: #166534;">Query Details:</h3>
+            <p style="margin: 4px 0;"><strong>Title:</strong> ${query.title}</p>
+            <p style="margin: 4px 0;"><strong>Description:</strong> ${query.description}</p>
+            <p style="margin: 4px 0;"><strong>Resolved By:</strong> ${supervisor ? supervisor.firstName + " " + supervisor.lastName : "Support Team"}</p>
+            <p style="margin: 4px 0;"><strong>Resolved On:</strong> ${new Date().toLocaleString()}</p>
+          </div>
+          
+          <p style="font-size: 16px; color: #334155;">Thank you for using SmartCampus. If you have any further issues, please feel free to raise a new query.</p>
+          
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+          
+          <p style="font-size: 12px; color: #94a3b8; text-align: center;">
+            SmartCampus Support Team<br>
+            <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}" style="color: #3b82f6;">Visit Dashboard</a>
+          </p>
+        </div>
+      `;
+
+      try {
+        await mailSender(student.email, emailSubject, emailBody);
+        console.log(`✅ Resolution email sent to student: ${student.email}`);
+      } catch (emailError) {
+        console.error("Email sending failed:", emailError);
+      }
+    }
 
     // Emit WebSocket event for real-time update
     const io = req.app.get("io");
@@ -336,6 +383,10 @@ exports.takeAdminAction = async (req, res) => {
       message || `Admin issued a ${action} for delayed resolution`;
     query.actionTakenAt = new Date();
 
+    // ⚠️ CRITICAL: Reset escalation status
+    query.escalationLevel = "none";
+    query.lastEscalationNotified = null;
+
     await query.save();
 
     // Emit WebSocket event for real-time update
@@ -346,7 +397,7 @@ exports.takeAdminAction = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Admin action '${action}' taken successfully`,
+      message: `Admin action '${action}' taken successfully. Query removed from escalations.`,
       query: query,
     });
   } catch (err) {
@@ -364,10 +415,13 @@ exports.takeAdminAction = async (req, res) => {
 // NEW: Get escalated queries for supervisor (24hr warnings)
 exports.getEscalatedWarnings = async (req, res) => {
   try {
+    const { id } = req.user; // Logged-in supervisor ID
+    
     const queries = await queryModel
       .find({
         status: { $ne: "Resolved" },
         escalationLevel: "warning_24hr",
+        assignedTo: id, // ONLY queries assigned to THIS supervisor
       })
       .populate("user", "firstName lastName email")
       .populate("assignedTo", "firstName lastName email")
@@ -386,6 +440,7 @@ exports.getEscalatedWarnings = async (req, res) => {
     });
   }
 };
+
 
 
 // NEW: Check and update escalation status for all queries (WITH NOTIFICATIONS)
@@ -407,7 +462,8 @@ exports.checkEscalations = async () => {
       status: { $ne: "Resolved" },
       createdAt: { $lt: fortyEightHoursAgo },
       escalationLevel: { $ne: "critical_48hr" },
-    }).populate("assignedTo", "user", "firstName lastName email");
+    }).populate("user", "firstName lastName email")
+      .populate("assignedTo", "firstName lastName email");
 
     // Update 24hr escalations and send notifications
     for (const query of queries24hr) {
@@ -416,7 +472,6 @@ exports.checkEscalations = async () => {
       await query.save();
       console.log(`⚠️ Escalation Warning: Query ${query._id} exceeded 24 hours`);
       
-      // Send notification to assigned supervisor
       if (query.assignedTo) {
         await createNotification(
           query.assignedTo._id,
@@ -435,10 +490,8 @@ exports.checkEscalations = async () => {
       await query.save();
       console.log(`🚨 Critical Escalation: Query ${query._id} exceeded 48 hours`);
       
-      // Find admin users
       const admins = await userModel.find({ role: "admin" });
       
-      // Send notification to all admins
       for (const admin of admins) {
         await createNotification(
           admin._id,
@@ -457,39 +510,15 @@ exports.checkEscalations = async () => {
   }
 };
 
-// NEW: Get escalated queries for supervisor (24hr warnings)
-exports.getEscalatedWarnings = async (req, res) => {
-  try {
-    const queries = await queryModel
-      .find({
-        status: { $ne: "Resolved" },
-        escalationLevel: "warning_24hr",
-      })
-      .populate("user", "firstName lastName email")
-      .populate("assignedTo", "firstName lastName email")
-      .sort({ createdAt: 1 });
 
-    return res.status(200).json({
-      success: true,
-      escalatedWarnings: queries,
-    });
-  } catch (err) {
-    console.error("Get Escalated Warnings Error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Error fetching escalated warnings",
-      error: err.message,
-    });
-  }
-};
 
-// NEW: Get critical escalations for admin (48hr+)
 exports.getCriticalEscalations = async (req, res) => {
   try {
     const queries = await queryModel
       .find({
         status: { $ne: "Resolved" },
         escalationLevel: "critical_48hr",
+        adminAction: "none", // ← THIS IS KEY
       })
       .populate("user", "firstName lastName email")
       .populate("assignedTo", "firstName lastName email")
@@ -509,7 +538,6 @@ exports.getCriticalEscalations = async (req, res) => {
   }
 };
 
-// Get single query by ID with all details
 exports.getQueryById = async (req, res) => {
   try {
     const { queryId } = req.params;
@@ -553,3 +581,177 @@ exports.getQueryById = async (req, res) => {
     });
   }
 };
+
+
+exports.reassignSupervisor = async (req, res) => {
+  try {
+    const { oldSupervisorId, newSupervisorId, queryIds } = req.body;
+    const adminId = req.user.id;
+
+    if (!oldSupervisorId || !newSupervisorId || !queryIds || !queryIds.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Old supervisor, new supervisor, and query IDs are required",
+      });
+    }
+
+    // Get old and new supervisor details
+    const oldSupervisor = await userModel.findById(oldSupervisorId);
+    const newSupervisor = await userModel.findById(newSupervisorId);
+
+    if (!oldSupervisor || !newSupervisor) {
+      return res.status(404).json({
+        success: false,
+        message: "Supervisor not found",
+      });
+    }
+
+    // Update all queries
+    const updatedQueries = [];
+    for (const queryId of queryIds) {
+      const query = await queryModel.findById(queryId);
+      if (query && query.assignedTo && query.assignedTo.toString() === oldSupervisorId) {
+        query.assignedTo = newSupervisorId;
+        query.adminAction = "warning";
+        query.adminActionMessage = `Reassigned from ${oldSupervisor.firstName} ${oldSupervisor.lastName} to ${newSupervisor.firstName} ${newSupervisor.lastName} by Admin`;
+        query.actionTakenAt = new Date();
+        await query.save();
+        updatedQueries.push(query);
+      }
+    }
+
+    // Email to removed supervisor (Strict warning)
+    const removedEmailSubject = "⚠️ URGENT: Your Supervisor Assignment Has Been Removed";
+    const removedEmailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 12px; margin-bottom: 20px;">
+          <h1 style="color: white; margin: 0;">⚠️ URGENT NOTICE</h1>
+        </div>
+        
+        <p style="font-size: 16px; color: #334155;">Dear <strong>${oldSupervisor.firstName} ${oldSupervisor.lastName}</strong>,</p>
+        
+        <p style="font-size: 16px; color: #334155;">This is a <strong style="color: #dc2626;">STRICT WARNING</strong> regarding your performance as a supervisor.</p>
+        
+        <div style="background: #fef2f2; padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #dc2626;">
+          <h3 style="margin: 0 0 8px 0; color: #991b1b;">REASON FOR ACTION:</h3>
+          <p style="margin: 4px 0;">You have failed to resolve the following queries within the SLA timeframe:</p>
+          <ul style="margin: 8px 0;">
+            ${updatedQueries.map(q => `<li>${q.title} - Created on ${new Date(q.createdAt).toLocaleDateString()}</li>`).join('')}
+          </ul>
+          <p style="margin-top: 12px;"><strong>Total Queries Reassigned:</strong> ${updatedQueries.length}</p>
+        </div>
+        
+        <div style="background: #fef3c7; padding: 16px; border-radius: 12px; margin: 20px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #92400e;">📋 ACTION REQUIRED:</h3>
+          <p>You are hereby <strong>STRICTLY WARNED</strong> and your assigned queries have been transferred to another supervisor.</p>
+          <p>You are required to <strong>present yourself before the Admin during working hours</strong> to explain the delay in resolution.</p>
+          <p>Failure to comply may result in further disciplinary action.</p>
+        </div>
+        
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">
+          SmartCampus Admin Team<br>
+          Please report to Admin office at your earliest convenience.
+        </p>
+      </div>
+    `;
+
+    // Email to new supervisor (Instructions)
+    const newEmailSubject = "📋 New Queries Assigned to You";
+    const newEmailBody = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 12px; margin-bottom: 20px;">
+          <h1 style="color: white; margin: 0;">📋 New Queries Assigned</h1>
+        </div>
+        
+        <p style="font-size: 16px; color: #334155;">Dear <strong>${newSupervisor.firstName} ${newSupervisor.lastName}</strong>,</p>
+        
+        <p style="font-size: 16px; color: #334155;">The following queries have been reassigned to you by the Admin for immediate resolution.</p>
+        
+        <div style="background: #eff6ff; padding: 16px; border-radius: 12px; margin: 20px 0;">
+          <h3 style="margin: 0 0 8px 0; color: #1e40af;">📋 ASSIGNED QUERIES:</h3>
+          <ul style="margin: 8px 0;">
+            ${updatedQueries.map(q => `<li><strong>${q.title}</strong> - ${q.description.substring(0, 100)}...<br>
+            <span style="font-size: 12px; color: #64748b;">Priority: ${q.priority} | Created: ${new Date(q.createdAt).toLocaleDateString()}</span></li>`).join('')}
+          </ul>
+        </div>
+        
+        <div style="background: #f0fdf4; padding: 16px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #22c55e;">
+          <h3 style="margin: 0 0 8px 0; color: #166534;">✅ INSTRUCTIONS:</h3>
+          <ol style="margin: 0; padding-left: 20px;">
+            <li>Please review each query and understand the issue</li>
+            <li>Contact the students if you need more information via comments</li>
+            <li>Resolve the queries within the SLA timeframe (24 hours)</li>
+            <li>Mark them as "Resolved" once completed</li>
+          </ol>
+        </div>
+        
+        <p style="font-size: 16px; color: #334155;">We appreciate your prompt attention to these matters.</p>
+        
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+        
+        <p style="font-size: 12px; color: #94a3b8; text-align: center;">
+          SmartCampus Support Team<br>
+          <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}/supervisor-dashboard" style="color: #3b82f6;">Go to Dashboard</a>
+        </p>
+      </div>
+    `;
+
+    try {
+      await mailSender(oldSupervisor.email, removedEmailSubject, removedEmailBody);
+      await mailSender(newSupervisor.email, newEmailSubject, newEmailBody);
+      console.log(`✅ Reassignment emails sent to both supervisors`);
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+    }
+
+    // Emit WebSocket event
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("supervisorReassigned", { oldSupervisorId, newSupervisorId, queryIds });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `${updatedQueries.length} queries reassigned successfully`,
+      reassignedCount: updatedQueries.length,
+    });
+  } catch (err) {
+    console.error("Reassign Supervisor Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error reassigning supervisor",
+      error: err.message,
+    });
+  }
+};
+
+
+// Get action history queries (where admin action was taken)
+exports.getActionHistory = async (req, res) => {
+  try {
+    const queries = await queryModel
+      .find({
+        adminAction: { $ne: "none" }, // Has admin action
+        // Optional: only show actions taken within last 30 days
+        actionTakenAt: { $exists: true, $ne: null }
+      })
+      .populate("user", "firstName lastName email")
+      .populate("assignedTo", "firstName lastName email")
+      .sort({ actionTakenAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      actionHistory: queries,
+    });
+  } catch (err) {
+    console.error("Get Action History Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching action history",
+      error: err.message,
+    });
+  }
+};
+

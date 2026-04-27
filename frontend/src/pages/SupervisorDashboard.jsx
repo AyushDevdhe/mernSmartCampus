@@ -53,23 +53,32 @@ const SupervisorDashboard = () => {
     }
   };
 
-  const fetchEscalationWarnings = async () => {
-    try {
-      const res = await getEscalatedWarnings();
-      if (res?.data?.success) {
-        setEscalationWarnings(res.data.escalatedWarnings);
-        // Show alert for new escalations
-        if (res.data.escalatedWarnings.length > 0) {
-          const warningCount = res.data.escalatedWarnings.length;
-          alert(
-            `⚠️ Attention: ${warningCount} query(s) have exceeded 24 hours without resolution!`,
-          );
-        }
+const fetchEscalationWarnings = async () => {
+  try {
+    const res = await getEscalatedWarnings();
+    if (res?.data?.success) {
+      const newWarnings = res.data.escalatedWarnings;
+      setEscalationWarnings(newWarnings);
+
+      // Show alert only for NEW warnings (not seen before)
+      const unseenWarnings = newWarnings.filter(
+        (warning) => !localStorage.getItem(`warning_seen_${warning._id}`),
+      );
+
+      if (unseenWarnings.length > 0) {
+        alert(
+          `⚠️ Attention: ${unseenWarnings.length} new query(s) have exceeded 24 hours without resolution!`,
+        );
+        // Mark these warnings as seen
+        unseenWarnings.forEach((warning) => {
+          localStorage.setItem(`warning_seen_${warning._id}`, "true");
+        });
       }
-    } catch (error) {
-      console.error("Error fetching escalation warnings:", error);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching escalation warnings:", error);
+  }
+};
   useEffect(() => {
     if (userRole === "supervisor") {
       fetchEscalationWarnings();

@@ -78,9 +78,12 @@ const Navbar = ({ toggleSideBar }) => {
                 >
                   Dashboard
                 </Link>
-                <div className="cursor-default rounded-lg px-3 py-2 text-sm text-slate-500">
+                <Link
+                  to="/profile"
+                  className="block rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-sky-50 hover:text-sky-700"
+                >
                   Profile
-                </div>
+                </Link>
                 <div
                   className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
                   onClick={handleLogout}

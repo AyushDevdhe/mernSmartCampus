@@ -19,14 +19,17 @@ import Layout from "./components/Layout.jsx";
 import AddQuery from "./pages/AddQuery.jsx";
 import UpdateQuery from "./pages/UpdateQuery.jsx";
 
-//importing components here
+
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
-import RoleBasedRoute from "./components/RoleBasedRoute.jsx"; // ADD THIS (will create)
+import RoleBasedRoute from "./components/RoleBasedRoute.jsx"; 
 
-///importing apis here
+
 import { getUser } from "./services/GetService.jsx";
 import QueryDetails from "./pages/QueryDetails.jsx";
+import Profile from "./pages/Profile.jsx";
+import Escalations from "./pages/Escalations.jsx";
+import ActionHistory from "./pages/ActionHistory.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -130,6 +133,33 @@ function App() {
             <ProtectedRoute>
               <QueryDetails />
             </ProtectedRoute>
+          ),
+        },
+
+        {
+          path: "profile",
+          element: (
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          ),
+        },
+
+        {
+          path: "escalations",
+          element: (
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <Escalations />
+            </RoleBasedRoute>
+          ),
+        },
+
+        {
+          path: "action-history",
+          element: (
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <ActionHistory />
+            </RoleBasedRoute>
           ),
         },
       ],

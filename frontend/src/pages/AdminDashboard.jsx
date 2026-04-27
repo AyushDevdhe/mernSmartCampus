@@ -45,23 +45,34 @@ const AdminDashboard = () => {
     }
   }, [userRole, navigate]);
 
-  const fetchCriticalEscalations = useCallback(async () => {
-    try {
-      const res = await getCriticalEscalations();
-      if (res?.data?.success) {
-        setCriticalEscalations((prev) => {
-          if (res.data.criticalEscalations.length > 0 && prev.length === 0) {
-            alert(
-              `🚨 URGENT: ${res.data.criticalEscalations.length} query(s) have exceeded 48 hours! Immediate attention required.`,
-            );
-          }
-          return res.data.criticalEscalations;
+const fetchCriticalEscalations = useCallback(async () => {
+  try {
+    const res = await getCriticalEscalations();
+    if (res?.data?.success) {
+      const newEscalations = res.data.criticalEscalations;
+
+      // Check for NEW escalations (not seen before)
+      const unseenEscalations = newEscalations.filter(
+        (esc) => !localStorage.getItem(`critical_seen_${esc._id}`),
+      );
+
+      // Show alert only for new escalations
+      if (unseenEscalations.length > 0) {
+        alert(
+          `🚨 URGENT: ${unseenEscalations.length} new query(s) have exceeded 48 hours! Immediate attention required.`,
+        );
+        // Mark these escalations as seen
+        unseenEscalations.forEach((esc) => {
+          localStorage.setItem(`critical_seen_${esc._id}`, "true");
         });
       }
-    } catch (error) {
-      console.error("Error fetching critical escalations:", error);
+
+      setCriticalEscalations(newEscalations);
     }
-  }, []);
+  } catch (error) {
+    console.error("Error fetching critical escalations:", error);
+  }
+}, []);
 
   useEffect(() => {
     if (userRole === "admin") {
@@ -276,12 +287,12 @@ const AdminDashboard = () => {
       </div>
 
       {/* Escalations Section */}
-      {escalatedQueries.length > 0 && (
+      {criticalEscalations.length > 0 && (
         <div className="section-card">
           <div className="section-header">
             <h2>⚠️ Escalated Issues (42hr+)</h2>
             <span className="section-badge">
-              {escalatedQueries.length} Urgent
+              {criticalEscalations.length} Urgent
             </span>
           </div>
           <table className="query-table">
@@ -296,7 +307,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {escalatedQueries.map((query) => {
+              {criticalEscalations.map((query) => {
                 const hoursOld = Math.floor(
                   (new Date() - new Date(query.createdAt)) / (1000 * 60 * 60),
                 );
@@ -555,13 +566,14 @@ const AdminDashboard = () => {
   );
 
   // Render Escalations Tab
+  // Render Escalations Tab
   const renderEscalations = () => (
     <div className="section-card">
       <div className="section-header">
         <h2>⚠️ Escalated Issues</h2>
         <div className="flex items-center gap-2">
           <span className="section-badge">
-            {escalatedQueries.length} Urgent
+            {criticalEscalations.length} Urgent
           </span>
           <button
             onClick={() => fetchDashboardData()}
@@ -571,7 +583,7 @@ const AdminDashboard = () => {
           </button>
         </div>
       </div>
-      {escalatedQueries.length === 0 ? (
+      {criticalEscalations.length === 0 ? (
         <p>No escalated issues. All queries are within SLA limits.</p>
       ) : (
         <table className="query-table">
@@ -586,7 +598,7 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {escalatedQueries.map((query) => {
+            {criticalEscalations.map((query) => {
               const hoursOld = Math.floor(
                 (new Date() - new Date(query.createdAt)) / (1000 * 60 * 60),
               );
@@ -753,6 +765,6 @@ const AdminDashboard = () => {
       )}
     </div>
   );
-};
+};;
 
 export default AdminDashboard;

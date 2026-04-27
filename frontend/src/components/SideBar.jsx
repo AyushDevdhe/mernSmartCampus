@@ -22,12 +22,11 @@ const SideBar = ({ open, setOpen }) => {
     { name: "Profile", path: "/profile", icon: "👤" },
   ];
 
-  // Admin Sidebar Menu with icons
+  
   const adminMenu = [
     { name: "Dashboard", path: "/admin-dashboard", icon: "📊" },
-    { name: "All Queries", path: "/admin-dashboard", icon: "📋" },
-    { name: "Supervisors", path: "/admin-dashboard", icon: "👥" },
-    { name: "Escalations", path: "/admin-dashboard", icon: "⚠️" },
+    { name: "Escalations", path: "/escalations", icon: "⚠️" },
+    { name: "Action History", path: "/action-history", icon: "📜" },
     { name: "Profile", path: "/profile", icon: "👤" },
   ];
 
@@ -117,8 +116,33 @@ const SideBar = ({ open, setOpen }) => {
         )}
 
         <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">
-          Tip: Use Add Query to raise issues quickly and track progress in your
-          dashboard.
+          {/* Role-based Tip */}
+          <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">
+            {userRole === "student" && (
+              <>
+                💡 Tip: Use "Add Query" to raise issues quickly and track
+                progress in your dashboard.
+              </>
+            )}
+            {userRole === "supervisor" && (
+              <>
+                💡 Tip: Assign unresolved queries to yourself and mark them
+                resolved when completed.
+              </>
+            )}
+            {userRole === "admin" && (
+              <>
+                💡 Tip: Monitor all queries, supervisor performance, and handle
+                escalated issues.
+              </>
+            )}
+            {!userRole && (
+              <>
+                💡 Tip: Login to access your personalized dashboard and manage
+                queries.
+              </>
+            )}
+          </div>
         </div>
       </aside>
     </>

@@ -14,9 +14,10 @@ const {
   logOut,
   getAllSupervisors,
   getEscalatedQueries,
+  getAvailableSupervisors, 
 } = require("../controllers/userController");
 
-// Public routes (no authentication needed)
+
 router.post("/send-otp", sendOTP);
 router.post("/sign-up", signUp);
 router.post("/login", login);
@@ -27,5 +28,6 @@ router.get("/get", verifyJWT, getUser);
 router.post("/logout", verifyJWT, logOut);
 router.get("/supervisors", verifyJWT, getAllSupervisors);
 router.get("/escalated-queries", verifyJWT, getEscalatedQueries);
+router.get("/available-supervisors", verifyJWT, getAvailableSupervisors);
 
 module.exports = router;
