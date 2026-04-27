@@ -1,36 +1,126 @@
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const SideBar = ({ open, setOpen }) => {
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+  const user = useSelector((state) => state.user.data);
+  const userRole = user?.role?.toLowerCase();
+
+  // Student Sidebar Menu with icons
+  const studentMenu = [
+    { name: "Dashboard", path: "/dashboard", icon: "📊" },
+    { name: "Add Query", path: "/add-query", icon: "➕" },
+    { name: "My Queries", path: "/dashboard", icon: "📋" },
+    { name: "Profile", path: "/profile", icon: "👤" },
+  ];
+
+  // Supervisor Sidebar Menu with icons
+  const supervisorMenu = [
+    { name: "Dashboard", path: "/supervisor-dashboard", icon: "📊" },
+    { name: "Assigned Queries", path: "/supervisor-dashboard", icon: "📌" },
+    { name: "Resolve Queries", path: "/supervisor-dashboard", icon: "✅" },
+    { name: "Profile", path: "/profile", icon: "👤" },
+  ];
+
+  // Admin Sidebar Menu with icons
+  const adminMenu = [
+    { name: "Dashboard", path: "/admin-dashboard", icon: "📊" },
+    { name: "All Queries", path: "/admin-dashboard", icon: "📋" },
+    { name: "Supervisors", path: "/admin-dashboard", icon: "👥" },
+    { name: "Escalations", path: "/admin-dashboard", icon: "⚠️" },
+    { name: "Profile", path: "/profile", icon: "👤" },
+  ];
+
+  // Select menu based on role
+  const getMenuItems = () => {
+    if (userRole === "admin") return adminMenu;
+    if (userRole === "supervisor") return supervisorMenu;
+    return studentMenu;
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <>
       {/* Overlay */}
       {open && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 z-40"
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"
           onClick={() => setOpen(false)}
-        ></div>
+          aria-label="Close sidebar"
+        />
       )}
 
       {/* Sidebar */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-black shadow-lg transform ${
+      <aside
+        className={`fixed left-0 top-0 z-50 h-screen w-72 border-r border-slate-800 bg-slate-950 px-4 py-6 text-slate-200 shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 z-50`}
+        }`}
       >
-        <div className="p-4 font-bold text-lg border-b">SmartCampus</div>
+        <div className="mb-6 border-b border-slate-800 pb-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-lg font-bold tracking-tight text-white">
+                SmartCampus
+              </div>
+              <div className="text-xs text-slate-400">Query Command Center</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:bg-slate-800"
+            >
+              Close
+            </button>
+          </div>
+          {user && (
+            <div className="mt-3 inline-flex rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-300">
+              {user?.role}
+            </div>
+          )}
+        </div>
 
         {isAuthenticated ? (
-          <div className="flex flex-col mt-2">
-            <div className="px-4 py-2  cursor-pointer">Dashboard</div>
-            <div className="px-4 py-2  cursor-pointer">Add Queries</div>
-            <div className="px-4 py-2 cursor-pointer">Profile</div>
-          </div>
+          <nav className="space-y-2">
+            {menuItems.map((item, index) => (
+              <Link
+                key={index}
+                to={item.path}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                onClick={() => setOpen(false)}
+              >
+                <span className="text-base">{item.icon}</span>
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
         ) : (
-          <div></div>
+          <nav className="space-y-2">
+            <Link
+              to="/login"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              onClick={() => setOpen(false)}
+            >
+              <span className="text-base">🔐</span>
+              <span>Login</span>
+            </Link>
+            <Link
+              to="/signup"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              onClick={() => setOpen(false)}
+            >
+              <span className="text-base">📝</span>
+              <span>Sign Up</span>
+            </Link>
+          </nav>
         )}
-      </div>
+
+        <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">
+          Tip: Use Add Query to raise issues quickly and track progress in your
+          dashboard.
+        </div>
+      </aside>
     </>
   );
 };

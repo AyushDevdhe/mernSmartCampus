@@ -1,5 +1,3 @@
-///all the imports here
-import "./App.css";
 //importing dependencies here
 import { useEffect } from "react";
 import { Provider } from "./components/ui/provider.jsx";
@@ -7,23 +5,28 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 //importing redux stuff here
 import { setUserData, setIsAuthenticated } from "../src/app/userSlices.js";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 //importing pages here
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
-import Dashboard from "./pages/Dashboard.jsx";
-import NavBar from "./components/NavBar.jsx";
+import Dashboard from "./pages/Dashboard.jsx"; // Student Dashboard
+import SupervisorDashboard from "./pages/SupervisorDashboard.jsx"; // ADD THIS
+import AdminDashboard from "./pages/AdminDashboard.jsx"; // ADD THIS
 import Layout from "./components/Layout.jsx";
+import AddQuery from "./pages/AddQuery.jsx";
+import UpdateQuery from "./pages/UpdateQuery.jsx";
 
 //importing components here
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import PublicRoute from "./components/PublicRoute.jsx";
+import RoleBasedRoute from "./components/RoleBasedRoute.jsx"; // ADD THIS (will create)
 
 ///importing apis here
 import { getUser } from "./services/GetService.jsx";
+import QueryDetails from "./pages/QueryDetails.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -41,7 +44,7 @@ function App() {
       }
     };
     fetchUser();
-  }, []);
+  }, [dispatch]);
 
   const router = createBrowserRouter([
     {
@@ -49,12 +52,52 @@ function App() {
       element: <Layout />,
       children: [
         { index: true, element: <Home /> },
+
+        {
+          path: "add-query",
+          element: (
+            <ProtectedRoute>
+              <AddQuery />
+            </ProtectedRoute>
+          ),
+        },
+
+        {
+          path: "update-query/:id",
+          element: (
+            <ProtectedRoute>
+              <UpdateQuery />
+            </ProtectedRoute>
+          ),
+        },
+
+        // Student Dashboard (existing Dashboard component)
         {
           path: "dashboard",
           element: (
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
+          ),
+        },
+
+        // Supervisor Dashboard - NEW
+        {
+          path: "supervisor-dashboard",
+          element: (
+            <RoleBasedRoute allowedRoles={["supervisor"]}>
+              <SupervisorDashboard />
+            </RoleBasedRoute>
+          ),
+        },
+
+        // Admin Dashboard - NEW
+        {
+          path: "admin-dashboard",
+          element: (
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
+            </RoleBasedRoute>
           ),
         },
 
@@ -79,6 +122,15 @@ function App() {
         {
           path: "forgotpassword",
           element: <ForgotPassword />,
+        },
+
+        {
+          path: "query/:id",
+          element: (
+            <ProtectedRoute>
+              <QueryDetails />
+            </ProtectedRoute>
+          ),
         },
       ],
     },

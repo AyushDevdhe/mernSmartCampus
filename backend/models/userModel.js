@@ -26,18 +26,20 @@ const userSchema = new mongoose.Schema(
     },
     prn: {
       type: Number,
-      required: true,
-      unique: true,
+      required: false,
+      sparse: true,
+      default: null,
     },
     role: {
       type: String,
-      enum: ["Student", "admin", "Supervisor"],
-      default: "Student",
+      enum: ["student", "supervisor", "admin"],
+      default: "student",
     },
   },
   { timestamps: true },
 );
 
+// ✅ FIXED PASSWORD HASHING (NO next(), NO error)
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
@@ -45,6 +47,7 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+// ✅ Compare password
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
