@@ -1,18 +1,10 @@
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import "../css/Sidebar.css";
 
 const SideBar = ({ open, setOpen }) => {
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
   const user = useSelector((state) => state.user.data);
   const userRole = user?.role?.toLowerCase();
-
-  // Get dashboard link based on role
-  const getDashboardLink = () => {
-    if (userRole === "admin") return "/admin-dashboard";
-    if (userRole === "supervisor") return "/supervisor-dashboard";
-    return "/dashboard";
-  };
 
   // Student Sidebar Menu with icons
   const studentMenu = [
@@ -52,51 +44,83 @@ const SideBar = ({ open, setOpen }) => {
     <>
       {/* Overlay */}
       {open && (
-        <div className="sidebar-overlay" onClick={() => setOpen(false)}></div>
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+          aria-label="Close sidebar"
+        />
       )}
 
       {/* Sidebar */}
-      <div className={`sidebar ${open ? "open" : "closed"}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-logo">SmartCampus</div>
-          {user && <div className="sidebar-role">{user?.role}</div>}
+      <aside
+        className={`fixed left-0 top-0 z-50 h-screen w-72 border-r border-slate-800 bg-slate-950 px-4 py-6 text-slate-200 shadow-2xl transition-transform duration-300 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="mb-6 border-b border-slate-800 pb-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-lg font-bold tracking-tight text-white">
+                SmartCampus
+              </div>
+              <div className="text-xs text-slate-400">Query Command Center</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:bg-slate-800"
+            >
+              Close
+            </button>
+          </div>
+          {user && (
+            <div className="mt-3 inline-flex rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-300">
+              {user?.role}
+            </div>
+          )}
         </div>
 
         {isAuthenticated ? (
-          <div className="sidebar-menu">
+          <nav className="space-y-2">
             {menuItems.map((item, index) => (
               <Link
                 key={index}
                 to={item.path}
-                className="menu-item"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
                 onClick={() => setOpen(false)}
               >
-                <span className="menu-icon">{item.icon}</span>
-                <span className="menu-text">{item.name}</span>
+                <span className="text-base">{item.icon}</span>
+                <span>{item.name}</span>
               </Link>
             ))}
-          </div>
+          </nav>
         ) : (
-          <div className="sidebar-menu">
+          <nav className="space-y-2">
             <Link
               to="/login"
-              className="menu-item"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
               onClick={() => setOpen(false)}
             >
-              <span className="menu-icon">🔐</span>
-              <span className="menu-text">Login</span>
+              <span className="text-base">🔐</span>
+              <span>Login</span>
             </Link>
             <Link
               to="/signup"
-              className="menu-item"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
               onClick={() => setOpen(false)}
             >
-              <span className="menu-icon">📝</span>
-              <span className="menu-text">Sign Up</span>
+              <span className="text-base">📝</span>
+              <span>Sign Up</span>
             </Link>
-          </div>
+          </nav>
         )}
-      </div>
+
+        <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">
+          Tip: Use Add Query to raise issues quickly and track progress in your
+          dashboard.
+        </div>
+      </aside>
     </>
   );
 };

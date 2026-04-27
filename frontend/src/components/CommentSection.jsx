@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   getCommentsByQuery,
@@ -13,7 +13,7 @@ const CommentSection = ({ queryId, queryTitle }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await getCommentsByQuery(queryId);
@@ -25,13 +25,13 @@ const CommentSection = ({ queryId, queryTitle }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [queryId]);
 
   useEffect(() => {
     if (queryId) {
       fetchComments();
     }
-  }, [queryId]);
+  }, [queryId, fetchComments]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) {
@@ -75,42 +75,42 @@ const CommentSection = ({ queryId, queryTitle }) => {
   const getUserBadge = (role) => {
     switch (role) {
       case "student":
-        return { bg: "#dbeafe", color: "#1e40af", text: "Student" };
+        return {
+          className: "bg-sky-100 text-sky-700",
+          text: "Student",
+        };
       case "supervisor":
-        return { bg: "#fef3c7", color: "#92400e", text: "Supervisor" };
+        return {
+          className: "bg-amber-100 text-amber-700",
+          text: "Supervisor",
+        };
       case "admin":
-        return { bg: "#fee2e2", color: "#991b1b", text: "Admin" };
+        return {
+          className: "bg-rose-100 text-rose-700",
+          text: "Admin",
+        };
       default:
-        return { bg: "#e2e8f0", color: "#475569", text: "User" };
+        return {
+          className: "bg-slate-100 text-slate-700",
+          text: "User",
+        };
     }
   };
 
   return (
-    <div
-      className="comment-section"
-      style={{
-        marginTop: "20px",
-        borderTop: "1px solid #e2e8f0",
-        paddingTop: "16px",
-      }}
-    >
-      <h4
-        style={{ marginBottom: "12px", fontSize: "16px", fontWeight: "bold" }}
-      >
+    <div className="border-t border-slate-200 pt-4">
+      <h4 className="mb-3 text-base font-semibold text-slate-900">
         💬 Comments ({comments.length})
       </h4>
 
       {/* Comment List */}
-      <div
-        className="comments-list"
-        style={{ maxHeight: "300px", overflowY: "auto", marginBottom: "16px" }}
-      >
+      <div className="mb-4 max-h-[300px] space-y-2 overflow-y-auto pr-1">
         {isLoading ? (
-          <p style={{ color: "#64748b", textAlign: "center", padding: "16px" }}>
+          <p className="py-4 text-center text-sm text-slate-500">
             Loading comments...
           </p>
         ) : comments.length === 0 ? (
-          <p style={{ color: "#64748b", textAlign: "center", padding: "16px" }}>
+          <p className="py-4 text-center text-sm text-slate-500">
             No comments yet. Start the conversation!
           </p>
         ) : (
@@ -120,79 +120,40 @@ const CommentSection = ({ queryId, queryTitle }) => {
             return (
               <div
                 key={comment._id}
-                style={{
-                  padding: "12px",
-                  marginBottom: "8px",
-                  background: "#f8fafc",
-                  borderRadius: "8px",
-                  border: "1px solid #e2e8f0",
-                }}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-3"
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <span style={{ fontWeight: "bold", fontSize: "13px" }}>
+                <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-800">
                       {comment.user?.firstName} {comment.user?.lastName}
                     </span>
                     <span
-                      style={{
-                        background: badge.bg,
-                        color: badge.color,
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        fontSize: "10px",
-                        fontWeight: "bold",
-                      }}
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${badge.className}`}
                     >
                       {badge.text}
                     </span>
                     {comment.isEdited && (
-                      <span style={{ fontSize: "10px", color: "#94a3b8" }}>
+                      <span className="text-[10px] text-slate-400">
                         (edited)
                       </span>
                     )}
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <span style={{ fontSize: "10px", color: "#94a3b8" }}>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400">
                       {new Date(comment.createdAt).toLocaleString()}
                     </span>
                     {(isAuthor || user?.role === "admin") && (
                       <button
                         onClick={() => handleDeleteComment(comment._id)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#ef4444",
-                          cursor: "pointer",
-                          fontSize: "12px",
-                        }}
+                        className="text-xs font-medium text-rose-600 transition hover:text-rose-700"
                       >
                         Delete
                       </button>
                     )}
                   </div>
                 </div>
-                <p
-                  style={{
-                    fontSize: "14px",
-                    color: "#334155",
-                    margin: 0,
-                    lineHeight: "1.5",
-                  }}
-                >
+                <p className="text-sm leading-6 text-slate-700">
                   {comment.text}
                 </p>
               </div>
@@ -202,36 +163,18 @@ const CommentSection = ({ queryId, queryTitle }) => {
       </div>
 
       {/* Add Comment Form */}
-      <div style={{ display: "flex", gap: "8px" }}>
+      <div className="flex flex-col gap-2 sm:flex-row">
         <textarea
           placeholder="Write a comment..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          style={{
-            flex: 1,
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #e2e8f0",
-            resize: "vertical",
-            fontSize: "14px",
-            fontFamily: "inherit",
-          }}
+          className="min-h-[72px] flex-1 resize-y rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
           rows="2"
         />
         <button
           onClick={handleAddComment}
           disabled={isSubmitting || !newComment.trim()}
-          style={{
-            padding: "8px 16px",
-            background: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            alignSelf: "flex-start",
-            opacity: !newComment.trim() || isSubmitting ? 0.6 : 1,
-          }}
+          className="self-end rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60 sm:self-start"
         >
           {isSubmitting ? "Sending..." : "Send"}
         </button>

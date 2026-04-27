@@ -65,36 +65,15 @@ const NotificationBell = () => {
   };
 
   return (
-    <div
-      className="notification-container"
-      style={{ position: "relative", display: "inline-block" }}
-    >
+    <div className="relative inline-block">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          background: "none",
-          border: "none",
-          fontSize: "20px",
-          cursor: "pointer",
-          position: "relative",
-          padding: "8px",
-        }}
+        className="relative rounded-xl border border-slate-300 bg-white p-2 text-xl transition hover:bg-slate-100"
+        aria-label="Toggle notifications"
       >
         🔔
         {unreadCount > 0 && (
-          <span
-            style={{
-              position: "absolute",
-              top: "0",
-              right: "0",
-              background: "#ef4444",
-              color: "white",
-              borderRadius: "50%",
-              padding: "2px 6px",
-              fontSize: "10px",
-              fontWeight: "bold",
-            }}
-          >
+          <span className="absolute right-0 top-0 inline-flex min-w-5 -translate-y-1 translate-x-1 items-center justify-center rounded-full bg-rose-600 px-1.5 text-[10px] font-bold text-white">
             {unreadCount}
           </span>
         )}
@@ -103,125 +82,57 @@ const NotificationBell = () => {
       {isOpen && (
         <>
           <div
-            className="notification-overlay"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 998,
-            }}
+            className="fixed inset-0 z-[998]"
             onClick={() => setIsOpen(false)}
           />
-          <div
-            className="notification-dropdown"
-            style={{
-              position: "absolute",
-              top: "40px",
-              right: "0",
-              width: "350px",
-              maxHeight: "400px",
-              background: "white",
-              borderRadius: "8px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              zIndex: 999,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding: "12px 16px",
-                borderBottom: "1px solid #e2e8f0",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h3 style={{ margin: 0, fontSize: "16px" }}>Notifications</h3>
+          <div className="absolute right-0 top-12 z-[999] w-[350px] max-w-[92vw] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <h3 className="text-sm font-semibold text-slate-900">
+                Notifications
+              </h3>
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#3b82f6",
-                    fontSize: "12px",
-                    cursor: "pointer",
-                  }}
+                  className="text-xs font-medium text-sky-700 transition hover:text-sky-800"
                 >
                   Mark all as read
                 </button>
               )}
             </div>
-            <div style={{ maxHeight: "350px", overflowY: "auto" }}>
+
+            <div className="max-h-[350px] overflow-y-auto">
               {notifications.length === 0 ? (
-                <div
-                  style={{
-                    padding: "32px",
-                    textAlign: "center",
-                    color: "#64748b",
-                  }}
-                >
+                <div className="p-8 text-center text-sm text-slate-500">
                   No notifications
                 </div>
               ) : (
                 notifications.map((notification) => (
                   <div
                     key={notification._id}
-                    style={{
-                      padding: "12px 16px",
-                      borderBottom: "1px solid #e2e8f0",
-                      background: notification.isRead ? "white" : "#f0f9ff",
-                      cursor: "pointer",
-                      transition: "background 0.2s",
-                    }}
+                    className={`cursor-pointer border-b border-slate-200 px-4 py-3 transition hover:bg-slate-50 ${
+                      notification.isRead ? "bg-white" : "bg-sky-50"
+                    }`}
                     onClick={() =>
                       !notification.isRead && handleMarkAsRead(notification._id)
                     }
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: "8px",
-                      }}
-                    >
-                      <span style={{ fontSize: "18px" }}>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg">
                         {getNotificationIcon(notification.type)}
                       </span>
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            fontWeight: "bold",
-                            fontSize: "14px",
-                            marginBottom: "4px",
-                          }}
-                        >
+                      <div className="flex-1">
+                        <div className="mb-0.5 text-sm font-semibold text-slate-800">
                           {notification.title}
                         </div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "#475569",
-                            marginBottom: "4px",
-                          }}
-                        >
+                        <div className="mb-1 text-xs text-slate-600">
                           {notification.message}
                         </div>
-                        <div style={{ fontSize: "10px", color: "#94a3b8" }}>
+                        <div className="text-[10px] text-slate-400">
                           {new Date(notification.createdAt).toLocaleString()}
                         </div>
                       </div>
                       {!notification.isRead && (
-                        <div
-                          style={{
-                            width: "8px",
-                            height: "8px",
-                            background: "#3b82f6",
-                            borderRadius: "50%",
-                          }}
-                        />
+                        <div className="mt-1 h-2 w-2 rounded-full bg-sky-500" />
                       )}
                     </div>
                   </div>

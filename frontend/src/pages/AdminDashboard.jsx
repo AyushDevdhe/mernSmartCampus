@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -45,24 +45,23 @@ const AdminDashboard = () => {
     }
   }, [userRole, navigate]);
 
-  const fetchCriticalEscalations = async () => {
+  const fetchCriticalEscalations = useCallback(async () => {
     try {
       const res = await getCriticalEscalations();
       if (res?.data?.success) {
-        setCriticalEscalations(res.data.criticalEscalations);
-        if (
-          res.data.criticalEscalations.length > 0 &&
-          criticalEscalations.length === 0
-        ) {
-          alert(
-            `🚨 URGENT: ${res.data.criticalEscalations.length} query(s) have exceeded 48 hours! Immediate attention required.`,
-          );
-        }
+        setCriticalEscalations((prev) => {
+          if (res.data.criticalEscalations.length > 0 && prev.length === 0) {
+            alert(
+              `🚨 URGENT: ${res.data.criticalEscalations.length} query(s) have exceeded 48 hours! Immediate attention required.`,
+            );
+          }
+          return res.data.criticalEscalations;
+        });
       }
     } catch (error) {
       console.error("Error fetching critical escalations:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (userRole === "admin") {
@@ -70,7 +69,7 @@ const AdminDashboard = () => {
       const interval = setInterval(fetchCriticalEscalations, 60000);
       return () => clearInterval(interval);
     }
-  }, [userRole]);
+  }, [userRole, fetchCriticalEscalations]);
 
   const handleCreateUser = async () => {
     try {
@@ -111,7 +110,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [queriesRes, supervisorsRes, escalatedRes] = await Promise.all([
@@ -131,14 +130,14 @@ const AdminDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Initial fetch
   useEffect(() => {
     if (userRole === "admin") {
       fetchDashboardData();
     }
-  }, [userRole]);
+  }, [userRole, fetchDashboardData]);
 
   // Refresh when tab becomes visible
   useEffect(() => {
@@ -153,14 +152,14 @@ const AdminDashboard = () => {
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [userRole]);
+  }, [userRole, fetchDashboardData]);
 
   // Refresh when switching tabs
   useEffect(() => {
     if (userRole === "admin") {
       fetchDashboardData();
     }
-  }, [activeTab]);
+  }, [activeTab, userRole, fetchDashboardData]);
 
   // Auto-refresh every 30 seconds
   // useEffect(() => {
@@ -241,18 +240,10 @@ const AdminDashboard = () => {
   const renderDashboard = () => (
     <>
       {/* Refresh Button */}
-      <div style={{ textAlign: "right", marginBottom: "16px" }}>
+      <div className="mb-4 text-right">
         <button
           onClick={() => fetchDashboardData()}
-          style={{
-            backgroundColor: "#3b82f6",
-            color: "white",
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "none",
-            cursor: "pointer",
-            fontWeight: "600",
-          }}
+          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
         >
           🔄 Refresh Data
         </button>
@@ -409,15 +400,7 @@ const AdminDashboard = () => {
                   <td>
                     <button
                       onClick={() => navigate(`/query/${query._id}`)}
-                      style={{
-                        padding: "4px 8px",
-                        backgroundColor: "#3b82f6",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        fontSize: "11px",
-                      }}
+                      className="rounded bg-sky-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sky-700"
                     >
                       👁️ View
                     </button>
@@ -436,19 +419,11 @@ const AdminDashboard = () => {
     <div className="section-card">
       <div className="section-header">
         <h2>📋 All Queries</h2>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div className="flex items-center gap-2">
           <span className="section-badge">{allQueries.length} Total</span>
           <button
             onClick={() => fetchDashboardData()}
-            style={{
-              background: "#3b82f6",
-              color: "white",
-              border: "none",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
+            className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-700"
           >
             🔄 Refresh
           </button>
@@ -522,34 +497,17 @@ const AdminDashboard = () => {
     <div className="section-card">
       <div className="section-header">
         <h2>👥 Supervisors</h2>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setShowCreateUserModal(true)}
-            style={{
-              background: "#22c55e",
-              color: "white",
-              border: "none",
-              padding: "6px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "12px",
-              fontWeight: "bold",
-            }}
+            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
           >
             + New Supervisor/Admin
           </button>
           <span className="section-badge">{supervisors.length} Active</span>
           <button
             onClick={() => fetchDashboardData()}
-            style={{
-              background: "#3b82f6",
-              color: "white",
-              border: "none",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
+            className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-700"
           >
             🔄 Refresh
           </button>
@@ -601,21 +559,13 @@ const AdminDashboard = () => {
     <div className="section-card">
       <div className="section-header">
         <h2>⚠️ Escalated Issues</h2>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div className="flex items-center gap-2">
           <span className="section-badge">
             {escalatedQueries.length} Urgent
           </span>
           <button
             onClick={() => fetchDashboardData()}
-            style={{
-              background: "#3b82f6",
-              color: "white",
-              border: "none",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "12px",
-            }}
+            className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-700"
           >
             🔄 Refresh
           </button>
@@ -684,20 +634,9 @@ const AdminDashboard = () => {
       </div>
 
       {criticalEscalations.length > 0 && (
-        <div
-          className="critical-escalation-banner"
-          style={{
-            background: "#fee2e2",
-            borderLeft: "4px solid #dc2626",
-            padding: "12px 16px",
-            marginBottom: "20px",
-            borderRadius: "8px",
-          }}
-        >
-          <span style={{ fontWeight: "bold", color: "#dc2626" }}>
-            🚨 CRITICAL:
-          </span>
-          <span style={{ marginLeft: "8px" }}>
+        <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+          <span className="font-semibold text-rose-700">🚨 CRITICAL:</span>
+          <span className="ml-2 text-sm text-rose-700">
             {criticalEscalations.length} query(s) have exceeded 48 hours!
             Immediate admin action required.
           </span>
@@ -740,32 +679,11 @@ const AdminDashboard = () => {
 
       {/* Modal for creating new user */}
       {showCreateUserModal && (
-        <div
-          className="modal-overlay"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            className="modal-content"
-            style={{
-              background: "white",
-              padding: "24px",
-              borderRadius: "12px",
-              width: "400px",
-              maxWidth: "90%",
-            }}
-          >
-            <h3 style={{ marginBottom: "16px" }}>Create New User</h3>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 className="mb-4 text-lg font-semibold text-slate-900">
+              Create New User
+            </h3>
 
             <input
               type="text"
@@ -774,13 +692,7 @@ const AdminDashboard = () => {
               onChange={(e) =>
                 setNewUser({ ...newUser, firstName: e.target.value })
               }
-              style={{
-                width: "100%",
-                padding: "8px",
-                margin: "8px 0",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-              }}
+              className="my-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             />
 
             <input
@@ -790,13 +702,7 @@ const AdminDashboard = () => {
               onChange={(e) =>
                 setNewUser({ ...newUser, lastName: e.target.value })
               }
-              style={{
-                width: "100%",
-                padding: "8px",
-                margin: "8px 0",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-              }}
+              className="my-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             />
 
             <input
@@ -806,13 +712,7 @@ const AdminDashboard = () => {
               onChange={(e) =>
                 setNewUser({ ...newUser, email: e.target.value })
               }
-              style={{
-                width: "100%",
-                padding: "8px",
-                margin: "8px 0",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-              }}
+              className="my-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             />
 
             <input
@@ -822,56 +722,28 @@ const AdminDashboard = () => {
               onChange={(e) =>
                 setNewUser({ ...newUser, password: e.target.value })
               }
-              style={{
-                width: "100%",
-                padding: "8px",
-                margin: "8px 0",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-              }}
+              className="my-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             />
 
             <select
               value={newUser.role}
               onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-              style={{
-                width: "100%",
-                padding: "8px",
-                margin: "8px 0",
-                borderRadius: "4px",
-                border: "1px solid #ccc",
-              }}
+              className="my-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
             >
               <option value="supervisor">Supervisor</option>
               <option value="admin">Admin</option>
             </select>
 
-            <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={handleCreateUser}
-                style={{
-                  background: "#3b82f6",
-                  color: "white",
-                  padding: "8px 16px",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
+                className="flex-1 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
               >
                 Create
               </button>
               <button
                 onClick={() => setShowCreateUserModal(false)}
-                style={{
-                  background: "#ef4444",
-                  color: "white",
-                  padding: "8px 16px",
-                  border: "none",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
+                className="flex-1 rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
               >
                 Cancel
               </button>
@@ -881,6 +753,6 @@ const AdminDashboard = () => {
       )}
     </div>
   );
-};;
+};
 
 export default AdminDashboard;

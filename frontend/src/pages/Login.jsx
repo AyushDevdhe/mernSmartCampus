@@ -57,39 +57,65 @@ export const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
+    <div className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <h2 className="text-2xl font-bold text-slate-900">Welcome Back</h2>
+      <p className="mt-2 text-sm text-slate-600">
+        Login to manage your student queries and track resolutions.
+      </p>
 
-      <input
-        id="email"
-        type="email"
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <div className="mt-6 space-y-4">
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1 block text-sm font-medium text-slate-700"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            placeholder="you@college.edu"
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+          />
+        </div>
 
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) => setPassword(e.target.value)}
-        onKeyPress={(e) => e.key === "Enter" && handleLoginData()}
-      />
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleLoginData()}
+            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+          />
+        </div>
 
-      <button type="submit" onClick={handleLoginData} disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"}
-      </button>
+        <button
+          type="submit"
+          onClick={handleLoginData}
+          disabled={isLoading}
+          className="w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isLoading ? "Logging in..." : "Login"}
+        </button>
+      </div>
 
       <h3
         onClick={() => navigate("/forgotpassword")}
-        style={{ cursor: "pointer", color: "blue" }}
+        className="mt-5 cursor-pointer text-sm font-medium text-sky-700 hover:text-sky-800"
       >
         Forgot Password
       </h3>
 
       <h4
         onClick={() => navigate("/signup")}
-        style={{ cursor: "pointer", color: "blue" }}
+        className="mt-3 cursor-pointer text-sm text-slate-600"
       >
-        Don't have an account? Sign up
+        Don't have an account?{" "}
+        <span className="font-semibold text-sky-700">Sign up</span>
       </h4>
     </div>
   );

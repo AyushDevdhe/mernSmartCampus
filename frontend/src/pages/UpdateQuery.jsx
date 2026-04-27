@@ -89,22 +89,31 @@ export const UpdateQuery = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p>Loading query data...</p>
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-sm font-medium text-slate-600">
+          Loading query data...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="Add Queries Container">
-      <h1>Update Query</h1>
+    <div className="mx-auto w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <h1 className="text-2xl font-bold text-slate-900">Update Query</h1>
+      <p className="mt-2 text-sm text-slate-600">
+        Refine your issue details and resubmit for faster resolution.
+      </p>
 
-      <form onSubmit={handleSubmit}>
-        <div className="query-form">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Query Type
+          </label>
           <select
             name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
           >
             <option value="">Set Query Type</option>
             <option value="Wi-Fi">Wi-Fi</option>
@@ -114,46 +123,70 @@ export const UpdateQuery = () => {
             <option value="Library">Library</option>
             <option value="Staff">Staff</option>
           </select>
-          {errors.title && <span className="error">{errors.title}</span>}
+          {errors.title && (
+            <span className="mt-1 block text-xs text-rose-600">
+              {errors.title}
+            </span>
+          )}
         </div>
 
-        <div className="query-form">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Priority Level
+          </label>
           <select
             name="priority"
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
+            className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
           >
             <option value="">Select Priority Level</option>
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
             <option value="High">High</option>
           </select>
-          {errors.priority && <span className="error">{errors.priority}</span>}
+          {errors.priority && (
+            <span className="mt-1 block text-xs text-rose-600">
+              {errors.priority}
+            </span>
+          )}
         </div>
 
-        <div className="query-form">
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Description
+          </label>
           <textarea
             name="description"
             value={description}
             placeholder="Please describe your issue in detail"
             onChange={(e) => setDescription(e.target.value)}
+            className="min-h-[140px] w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
           ></textarea>
           {errors.description && (
-            <span className="error">{errors.description}</span>
+            <span className="mt-1 block text-xs text-rose-600">
+              {errors.description}
+            </span>
           )}
         </div>
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Updating..." : "Update Query"}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isSubmitting ? "Updating..." : "Update Query"}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard")}
-          style={{ marginLeft: "10px", backgroundColor: "#666" }}
-        >
-          Cancel
-        </button>
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            Cancel
+          </button>
+        </div>
       </form>
     </div>
   );

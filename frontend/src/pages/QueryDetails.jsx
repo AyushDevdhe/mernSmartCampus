@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { getQueryById } from "../services/QueryApis";
 import CommentSection from "../components/CommentSection";
 import QueryTimeline from "../components/QueryTimeline";
@@ -8,7 +7,6 @@ import QueryTimeline from "../components/QueryTimeline";
 const QueryDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user.data);
   const [query, setQuery] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,53 +37,48 @@ const QueryDetails = () => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
-        return { bg: "#fee2e2", color: "#dc2626" };
+        return "bg-rose-100 text-rose-700";
       case "Medium":
-        return { bg: "#fef3c7", color: "#d97706" };
+        return "bg-amber-100 text-amber-700";
       case "Low":
-        return { bg: "#d1fae5", color: "#059669" };
+        return "bg-emerald-100 text-emerald-700";
       default:
-        return { bg: "#e2e8f0", color: "#475569" };
+        return "bg-slate-100 text-slate-700";
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case "Pending":
-        return { bg: "#fef3c7", color: "#d97706" };
+        return "bg-amber-100 text-amber-700";
       case "In Progress":
-        return { bg: "#dbeafe", color: "#2563eb" };
+        return "bg-sky-100 text-sky-700";
       case "Resolved":
-        return { bg: "#d1fae5", color: "#059669" };
+        return "bg-emerald-100 text-emerald-700";
       default:
-        return { bg: "#e2e8f0", color: "#475569" };
+        return "bg-slate-100 text-slate-700";
     }
   };
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p>Loading query details...</p>
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-sm font-medium text-slate-600">
+          Loading query details...
+        </p>
       </div>
     );
   }
 
   if (error || !query) {
     return (
-      <div className="flex justify-center items-center h-64 flex-col">
-        <p style={{ color: "#ef4444", marginBottom: "16px" }}>
+      <div className="flex h-64 flex-col items-center justify-center">
+        <p className="mb-4 text-sm font-medium text-rose-600">
           {error || "Query not found"}
         </p>
         <button
           onClick={() => navigate(-1)}
-          style={{
-            padding: "8px 16px",
-            background: "#3b82f6",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
+          className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
         >
           Go Back
         </button>
@@ -95,93 +88,31 @@ const QueryDetails = () => {
 
   const priorityStyle = getPriorityColor(query.priority);
   const statusStyle = getStatusColor(query.status);
-  const isAuthor = query.user?._id === user?._id;
-  const isAssignedSupervisor = query.assignedTo?._id === user?._id;
-  const isAdmin = user?.role === "admin";
 
   return (
-    <div
-      className="query-details-container"
-      style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}
-    >
-      {/* Header with Back Button */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-          marginBottom: "24px",
-        }}
-      >
+    <div className="mx-auto w-full max-w-4xl">
+      <div className="mb-6 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
-          style={{
-            padding: "8px 12px",
-            background: "#e2e8f0",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
         >
           ← Back
         </button>
-        <h1 style={{ fontSize: "24px", fontWeight: "bold", margin: 0 }}>
-          Query Details
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900">Query Details</h1>
       </div>
 
-      {/* Query Card */}
-      <div
-        style={{
-          background: "white",
-          borderRadius: "12px",
-          border: "1px solid #e2e8f0",
-          overflow: "hidden",
-          marginBottom: "24px",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: "20px",
-            borderBottom: "1px solid #e2e8f0",
-            background: "#f8fafc",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
-            <h2 style={{ fontSize: "20px", fontWeight: "bold", margin: 0 }}>
-              {query.title}
-            </h2>
-            <div style={{ display: "flex", gap: "8px" }}>
+      <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h2 className="text-xl font-bold text-slate-900">{query.title}</h2>
+            <div className="flex flex-wrap gap-2">
               <span
-                style={{
-                  background: priorityStyle.bg,
-                  color: priorityStyle.color,
-                  padding: "4px 12px",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                }}
+                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${priorityStyle}`}
               >
                 {query.priority}
               </span>
               <span
-                style={{
-                  background: statusStyle.bg,
-                  color: statusStyle.color,
-                  padding: "4px 12px",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                }}
+                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}
               >
                 {query.status}
               </span>
@@ -189,90 +120,37 @@ const QueryDetails = () => {
           </div>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: "20px" }}>
-          {/* Description */}
-          <div style={{ marginBottom: "20px" }}>
-            <h4
-              style={{
-                fontSize: "14px",
-                fontWeight: "bold",
-                marginBottom: "8px",
-                color: "#475569",
-              }}
-            >
+        <div className="px-6 py-5">
+          <div className="mb-5">
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
             </h4>
-            <p
-              style={{
-                fontSize: "15px",
-                color: "#334155",
-                lineHeight: "1.6",
-                margin: 0,
-              }}
-            >
+            <p className="text-sm leading-7 text-slate-700">
               {query.description}
             </p>
           </div>
 
-          {/* Info Grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: "16px",
-              marginBottom: "20px",
-              paddingTop: "16px",
-              borderTop: "1px solid #e2e8f0",
-            }}
-          >
+          <div className="grid gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
             <div>
-              <h4
-                style={{
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  color: "#64748b",
-                  marginBottom: "4px",
-                }}
-              >
+              <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Created By
               </h4>
-              <p style={{ fontSize: "14px", fontWeight: "bold", margin: 0 }}>
+              <p className="text-sm font-semibold text-slate-800">
                 {query.user?.firstName} {query.user?.lastName}
               </p>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#64748b",
-                  margin: "4px 0 0 0",
-                }}
-              >
-                {query.user?.email}
-              </p>
+              <p className="mt-1 text-xs text-slate-500">{query.user?.email}</p>
               {query.user?.prn && (
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "#64748b",
-                    margin: "4px 0 0 0",
-                  }}
-                >
+                <p className="mt-1 text-xs text-slate-500">
                   PRN: {query.user?.prn}
                 </p>
               )}
             </div>
+
             <div>
-              <h4
-                style={{
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  color: "#64748b",
-                  marginBottom: "4px",
-                }}
-              >
+              <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Assigned To
               </h4>
-              <p style={{ fontSize: "14px", margin: 0 }}>
+              <p className="text-sm text-slate-700">
                 {query.assignedTo ? (
                   <>
                     {query.assignedTo.firstName} {query.assignedTo.lastName}
@@ -282,60 +160,32 @@ const QueryDetails = () => {
                 )}
               </p>
             </div>
+
             <div>
-              <h4
-                style={{
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  color: "#64748b",
-                  marginBottom: "4px",
-                }}
-              >
+              <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Created At
               </h4>
-              <p style={{ fontSize: "14px", margin: 0 }}>
+              <p className="text-sm text-slate-700">
                 {new Date(query.createdAt).toLocaleString()}
               </p>
             </div>
+
             <div>
-              <h4
-                style={{
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  color: "#64748b",
-                  marginBottom: "4px",
-                }}
-              >
+              <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Last Updated
               </h4>
-              <p style={{ fontSize: "14px", margin: 0 }}>
+              <p className="text-sm text-slate-700">
                 {new Date(query.updatedAt).toLocaleString()}
               </p>
             </div>
           </div>
 
-          {/* Admin Action Section */}
           {query.adminAction && query.adminAction !== "none" && (
-            <div
-              style={{
-                background: "#fef2f2",
-                padding: "12px",
-                borderRadius: "8px",
-                marginBottom: "20px",
-                border: "1px solid #fee2e2",
-              }}
-            >
-              <h4
-                style={{
-                  fontSize: "13px",
-                  fontWeight: "bold",
-                  color: "#dc2626",
-                  marginBottom: "4px",
-                }}
-              >
+            <div className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3">
+              <h4 className="mb-1 text-sm font-semibold text-rose-700">
                 👑 Admin Action
               </h4>
-              <p style={{ fontSize: "13px", color: "#991b1b", margin: 0 }}>
+              <p className="text-sm text-rose-700">
                 {query.adminActionMessage ||
                   `Admin issued a ${query.adminAction}`}
               </p>
@@ -344,11 +194,9 @@ const QueryDetails = () => {
         </div>
       </div>
 
-      {/* Timeline Component */}
       <QueryTimeline query={query} />
 
-      {/* Comments Section */}
-      <div style={{ marginTop: "24px" }}>
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <CommentSection queryId={query._id} queryTitle={query.title} />
       </div>
     </div>

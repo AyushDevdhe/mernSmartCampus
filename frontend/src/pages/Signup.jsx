@@ -78,68 +78,96 @@ export const Signup = () => {
   };
 
   return (
-    <div className="signup-container">
-      <h2>Student Sign Up</h2>
-      <p style={{ color: "#666", fontSize: "14px", marginBottom: "16px" }}>
+    <div className="mx-auto w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <h2 className="text-2xl font-bold text-slate-900">Student Sign Up</h2>
+      <p className="mt-2 text-sm text-slate-600">
         Only student accounts can be created here. Supervisor and Admin accounts
         must be created by an Admin.
       </p>
 
-      <input
-        type="text"
-        placeholder="First Name"
-        onChange={(e) => registerfirstName(e.target.value)}
-      />
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <input
+          type="text"
+          placeholder="First Name"
+          onChange={(e) => registerfirstName(e.target.value)}
+          className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        />
 
-      <input
-        type="text"
-        placeholder="Last Name"
-        onChange={(e) => registerlastName(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="Last Name"
+          onChange={(e) => registerlastName(e.target.value)}
+          className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        />
 
-      <input
-        type="number"
-        placeholder="PRN (Required)"
-        onChange={(e) => registerPrn(e.target.value)}
-      />
+        <input
+          type="number"
+          placeholder="PRN (Required)"
+          onChange={(e) => registerPrn(e.target.value)}
+          className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        />
 
-      <input
-        type="email"
-        placeholder="E-Mail"
-        onChange={(e) => registerEmail(e.target.value)}
-      />
+        <input
+          type="email"
+          placeholder="E-Mail"
+          onChange={(e) => registerEmail(e.target.value)}
+          className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        />
+      </div>
 
-      <button onClick={verify}>Send OTP</button>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          onClick={verify}
+          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+        >
+          Send OTP
+        </button>
+        {sentOtp && (
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            OTP sent
+          </span>
+        )}
+      </div>
 
       {sentOtp && (
         <input
           type="number"
           placeholder="Enter OTP"
           onChange={(e) => registerotp(e.target.value)}
+          className="mt-4 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
         />
       )}
 
-      <input
-        type="password"
-        placeholder="Password"
-        onChange={(e) => registerPassword(e.target.value)}
-      />
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <input
+          type="password"
+          placeholder="Password"
+          onChange={(e) => registerPassword(e.target.value)}
+          className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        />
 
-      <input
-        type="password"
-        placeholder="Confirm Password"
-        onChange={(e) => registerConfirmPass(e.target.value)}
-      />
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          onChange={(e) => registerConfirmPass(e.target.value)}
+          className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+        />
+      </div>
 
-      <button type="submit" onClick={registerUser}>
+      <button
+        type="submit"
+        onClick={registerUser}
+        className="mt-6 w-full rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-700"
+      >
         Sign Up as Student
       </button>
 
       <h1
         onClick={() => navigate("/login")}
-        style={{ cursor: "pointer", color: "blue" }}
+        className="mt-4 cursor-pointer text-center text-sm text-slate-600"
       >
-        Already have an account? Login
+        Already have an account?{" "}
+        <span className="font-semibold text-sky-700">Login</span>
       </h1>
     </div>
   );

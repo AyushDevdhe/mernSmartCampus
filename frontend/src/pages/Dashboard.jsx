@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getQueriesByUser, deleteQuery } from "../services/QueryApis";
 import CommentSection from "../components/CommentSection";
-import "../css/StudentDashboard.css";
 
 const Dashboard = () => {
   const user = useSelector((state) => state.user.data);
@@ -71,167 +70,161 @@ const Dashboard = () => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "High":
-        return "text-red-600 font-bold";
+        return "bg-rose-100 text-rose-700";
       case "Medium":
-        return "text-yellow-600 font-bold";
+        return "bg-amber-100 text-amber-700";
       case "Low":
-        return "text-green-600 font-bold";
+        return "bg-emerald-100 text-emerald-700";
       default:
-        return "";
+        return "bg-slate-100 text-slate-700";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Resolved":
+        return "bg-emerald-100 text-emerald-700";
+      case "In Progress":
+        return "bg-sky-100 text-sky-700";
+      default:
+        return "bg-amber-100 text-amber-700";
     }
   };
 
   // Show loading while checking role
   if (!userRole || userRole === "admin" || userRole === "supervisor") {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p>Redirecting to your dashboard...</p>
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-sm font-medium text-slate-600">
+          Redirecting to your dashboard...
+        </p>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p>Loading your queries...</p>
+      <div className="flex h-64 items-center justify-center">
+        <p className="text-sm font-medium text-slate-600">
+          Loading your queries...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-container">
-      <p className="welcome-text">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <p className="text-sm text-slate-600">
         Hello {user?.firstName} {user?.lastName}
       </p>
-      <p className="queries-title">Your Queries</p>
+      <p className="mt-1 text-2xl font-bold text-slate-900">Your Queries</p>
 
       {userQueries.length === 0 ? (
-        <div className="no-queries">
-          <p>No queries yet. Click "Add Query" to create one.</p>
+        <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+          <p className="text-sm text-slate-600">
+            No queries yet. Click "Add Query" to create one.
+          </p>
         </div>
       ) : (
-        <table className="min-w-full border border-gray-300 rounded-lg overflow-hidden mt-4 shadow-sm">
-          <thead className="bg-gray-100">
-            <tr className="text-left text-sm font-semibold text-gray-700">
-              <th className="px-4 py-2">Title</th>
-              <th className="px-4 py-2">Description</th>
-              <th className="px-4 py-2">Priority</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {userQueries?.map((query) => {
-              const isResolved = query.status === "Resolved";
-              return (
-                <React.Fragment key={query._id}>
-                  <tr className="hover:bg-gray-50">
-                    <td className="px-4 py-2">{query.title}</td>
-                    <td className="px-4 py-2">{query.description}</td>
-                    <td
-                      className={`px-4 py-2 ${getPriorityColor(query.priority)}`}
-                    >
-                      {query.priority}
-                    </td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={`status-badge ${query.status?.toLowerCase()}`}
-                      >
-                        {query.status || "Pending"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2">
-                      {/* Comments Button - Hide for Resolved */}
-                      {!isResolved && (
-                        <button
-                          onClick={() => toggleComments(query._id)}
-                          style={{
-                            marginRight: "8px",
-                            padding: "5px 10px",
-                            backgroundColor: "#8b5cf6",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                          }}
+        <div className="mt-5 overflow-x-auto rounded-xl border border-slate-200">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
+              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <th className="px-4 py-3">Title</th>
+                <th className="px-4 py-3">Description</th>
+                <th className="px-4 py-3">Priority</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white text-sm text-slate-700">
+              {userQueries?.map((query) => {
+                const isResolved = query.status === "Resolved";
+                return (
+                  <React.Fragment key={query._id}>
+                    <tr className="align-top transition hover:bg-slate-50">
+                      <td className="px-4 py-3 font-medium text-slate-800">
+                        {query.title}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {query.description}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getPriorityColor(
+                            query.priority,
+                          )}`}
                         >
-                          💬 Comments
-                        </button>
-                      )}
-
-                      {/* Edit Button - Hide for Resolved */}
-                      {!isResolved && (
-                        <button
-                          onClick={() => handleEdit(query._id)}
-                          className="edit-btn"
-                          style={{
-                            marginRight: "8px",
-                            padding: "5px 10px",
-                            backgroundColor: "#4CAF50",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                          }}
+                          {query.priority}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${getStatusColor(
+                            query.status || "Pending",
+                          )}`}
                         >
-                          Edit
-                        </button>
-                      )}
+                          {query.status || "Pending"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {!isResolved && (
+                            <button
+                              onClick={() => toggleComments(query._id)}
+                              className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-700"
+                            >
+                              💬 Comments
+                            </button>
+                          )}
 
-                      {/* Delete Button - Hide for Resolved */}
-                      {!isResolved && (
-                        <button
-                          onClick={() => handleDelete(query._id)}
-                          disabled={deletingId === query._id}
-                          className="delete-btn"
-                          style={{
-                            padding: "5px 10px",
-                            backgroundColor: "#f44336",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {deletingId === query._id ? "Deleting..." : "Delete"}
-                        </button>
-                      )}
+                          {!isResolved && (
+                            <button
+                              onClick={() => handleEdit(query._id)}
+                              className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                            >
+                              Edit
+                            </button>
+                          )}
 
-                      {/* View Button - Show for ALL queries */}
-                      <button
-                        onClick={() => navigate(`/query/${query._id}`)}
-                        style={{
-                          padding: "5px 10px",
-                          backgroundColor: "#3b82f6",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          marginLeft: "8px",
-                        }}
-                      >
-                        👁️ View
-                      </button>
-                    </td>
-                  </tr>
-                  {expandedQueryId === query._id && (
-                    <tr>
-                      <td
-                        colSpan="5"
-                        style={{ padding: "16px", background: "#f9fafb" }}
-                      >
-                        <CommentSection
-                          queryId={query._id}
-                          queryTitle={query.title}
-                        />
+                          {!isResolved && (
+                            <button
+                              onClick={() => handleDelete(query._id)}
+                              disabled={deletingId === query._id}
+                              className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                              {deletingId === query._id
+                                ? "Deleting..."
+                                : "Delete"}
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => navigate(`/query/${query._id}`)}
+                            className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-700"
+                          >
+                            👁️ View
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+
+                    {expandedQueryId === query._id && (
+                      <tr>
+                        <td colSpan="5" className="bg-slate-50 px-4 py-4">
+                          <CommentSection
+                            queryId={query._id}
+                            queryTitle={query.title}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

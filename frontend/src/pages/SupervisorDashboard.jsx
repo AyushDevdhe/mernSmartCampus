@@ -8,7 +8,6 @@ import {
   getEscalatedWarnings,
 } from "../services/QueryApis";
 import CommentSection from "../components/CommentSection";
-import "../css/SupervisorDashboard.css";
 
 const SupervisorDashboard = () => {
   const user = useSelector((state) => state.user.data);
@@ -18,7 +17,7 @@ const SupervisorDashboard = () => {
   const [allQueries, setAllQueries] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
-  const [adminActions, setAdminActions] = useState([]);
+  const [, setAdminActions] = useState([]);
   const [escalationWarnings, setEscalationWarnings] = useState([]);
   const [expandedQueryId, setExpandedQueryId] = useState(null);
 
@@ -157,7 +156,7 @@ const SupervisorDashboard = () => {
 
   if (userRole !== "supervisor") {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <p>Redirecting...</p>
       </div>
     );
@@ -165,35 +164,28 @@ const SupervisorDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex h-64 items-center justify-center">
         <p>Loading queries...</p>
       </div>
     );
   }
 
   return (
-    <div className="supervisor-dashboard-container p-6">
-      <h1 className="text-2xl font-bold mb-4">Supervisor Dashboard</h1>
-      <p className="welcome-text mb-6">
+    <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h1 className="text-2xl font-bold text-slate-900">
+        Supervisor Dashboard
+      </h1>
+      <p className="text-sm text-slate-600">
         Welcome, Supervisor {user?.firstName} {user?.lastName}
       </p>
 
       {/* ADD ESCALATION WARNING BANNER HERE */}
       {escalationWarnings.length > 0 && (
-        <div
-          className="escalation-warning-banner"
-          style={{
-            background: "#fef3c7",
-            borderLeft: "4px solid #eab308",
-            padding: "12px 16px",
-            marginBottom: "20px",
-            borderRadius: "8px",
-          }}
-        >
-          <span style={{ fontWeight: "bold", color: "#d97706" }}>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <span className="font-semibold text-amber-700">
             ⚠️ Escalation Warning:
           </span>
-          <span style={{ marginLeft: "8px" }}>
+          <span className="ml-2 text-sm text-amber-700">
             {escalationWarnings.length} query(s) have exceeded 24 hours. Please
             take action.
           </span>
@@ -314,15 +306,7 @@ const SupervisorDashboard = () => {
                         {/* View Details Button */}
                         <button
                           onClick={() => navigate(`/query/${query._id}`)}
-                          style={{
-                            marginRight: "8px",
-                            padding: "5px 10px",
-                            backgroundColor: "#3b82f6",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                          }}
+                          className="mr-2 rounded bg-sky-600 px-3 py-1 text-sm font-medium text-white transition hover:bg-sky-700"
                         >
                           👁️ View
                         </button>
@@ -330,15 +314,7 @@ const SupervisorDashboard = () => {
                         {/* Comments Button */}
                         <button
                           onClick={() => toggleComments(query._id)}
-                          style={{
-                            marginRight: "8px",
-                            padding: "5px 10px",
-                            backgroundColor: "#8b5cf6",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                          }}
+                          className="mr-2 rounded bg-violet-600 px-3 py-1 text-sm font-medium text-white transition hover:bg-violet-700"
                         >
                           💬 Comments
                         </button>
@@ -363,10 +339,7 @@ const SupervisorDashboard = () => {
                     {/* Expandable row for comments */}
                     {expandedQueryId === query._id && (
                       <tr>
-                        <td
-                          colSpan="7"
-                          style={{ padding: "16px", background: "#f9fafb" }}
-                        >
+                        <td colSpan="7" className="bg-slate-50 p-4">
                           <CommentSection
                             queryId={query._id}
                             queryTitle={query.title}

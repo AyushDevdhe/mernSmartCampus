@@ -61,17 +61,17 @@ const QueryTimeline = ({ query, createdAt, updatedAt, statusHistory }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "created":
-        return "#22c55e";
+        return "bg-emerald-500";
       case "assigned":
-        return "#3b82f6";
+        return "bg-sky-500";
       case "progress":
-        return "#eab308";
+        return "bg-amber-500";
       case "resolved":
-        return "#22c55e";
+        return "bg-emerald-500";
       case "admin":
-        return "#ef4444";
+        return "bg-rose-500";
       default:
-        return "#64748b";
+        return "bg-slate-500";
     }
   };
 
@@ -93,83 +93,35 @@ const QueryTimeline = ({ query, createdAt, updatedAt, statusHistory }) => {
   };
 
   return (
-    <div className="query-timeline" style={{ marginTop: "20px" }}>
-      <h4
-        style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
-      >
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h4 className="mb-4 text-base font-semibold text-slate-900">
         📅 Timeline
       </h4>
 
-      <div
-        className="timeline-container"
-        style={{ position: "relative", paddingLeft: "30px" }}
-      >
-        {/* Vertical line */}
-        <div
-          style={{
-            position: "absolute",
-            left: "15px",
-            top: "10px",
-            bottom: "10px",
-            width: "2px",
-            background: "#e2e8f0",
-          }}
-        />
+      <div className="relative pl-8">
+        <div className="absolute bottom-2 left-3.5 top-2 w-0.5 bg-slate-200" />
 
         {timelineEvents.map((event, index) => (
-          <div
-            key={index}
-            style={{ position: "relative", marginBottom: "24px" }}
-          >
-            {/* Dot */}
+          <div key={index} className="relative mb-4">
             <div
-              style={{
-                position: "absolute",
-                left: "-26px",
-                top: "0",
-                width: "12px",
-                height: "12px",
-                borderRadius: "50%",
-                background: getStatusColor(event.status),
-                border: "2px solid white",
-                boxShadow: "0 0 0 2px #e2e8f0",
-              }}
+              className={`absolute -left-[25px] top-1 h-3 w-3 rounded-full border-2 border-white shadow-[0_0_0_2px_#e2e8f0] ${getStatusColor(
+                event.status,
+              )}`}
             />
 
-            {/* Content */}
-            <div
-              style={{
-                background: "#f8fafc",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                border: "1px solid #e2e8f0",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "8px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
-                >
-                  <span style={{ fontSize: "18px" }}>
-                    {getStatusIcon(event.status)}
-                  </span>
-                  <span style={{ fontWeight: "bold", fontSize: "14px" }}>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{getStatusIcon(event.status)}</span>
+                  <span className="text-sm font-semibold text-slate-800">
                     {event.title}
                   </span>
                 </div>
-                <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                <span className="text-[11px] text-slate-400">
                   {new Date(event.date).toLocaleString()}
                 </span>
               </div>
-              <p style={{ fontSize: "13px", color: "#475569", margin: 0 }}>
-                {event.description}
-              </p>
+              <p className="text-sm text-slate-600">{event.description}</p>
             </div>
           </div>
         ))}

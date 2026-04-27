@@ -1,5 +1,3 @@
-///all the imports here
-import "./App.css";
 //importing dependencies here
 import { useEffect } from "react";
 import { Provider } from "./components/ui/provider.jsx";
@@ -7,7 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 //importing redux stuff here
 import { setUserData, setIsAuthenticated } from "../src/app/userSlices.js";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 //importing pages here
 import Login from "./pages/Login.jsx";
@@ -17,7 +15,6 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx"; // Student Dashboard
 import SupervisorDashboard from "./pages/SupervisorDashboard.jsx"; // ADD THIS
 import AdminDashboard from "./pages/AdminDashboard.jsx"; // ADD THIS
-import NavBar from "./components/NavBar.jsx";
 import Layout from "./components/Layout.jsx";
 import AddQuery from "./pages/AddQuery.jsx";
 import UpdateQuery from "./pages/UpdateQuery.jsx";
@@ -30,7 +27,6 @@ import RoleBasedRoute from "./components/RoleBasedRoute.jsx"; // ADD THIS (will 
 ///importing apis here
 import { getUser } from "./services/GetService.jsx";
 import QueryDetails from "./pages/QueryDetails.jsx";
-import "./css/common.css";
 
 function App() {
   const dispatch = useDispatch();
@@ -48,7 +44,7 @@ function App() {
       }
     };
     fetchUser();
-  }, []);
+  }, [dispatch]);
 
   const router = createBrowserRouter([
     {
