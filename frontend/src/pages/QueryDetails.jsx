@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { getQueryById } from "../services/QueryApis";
 import CommentSection from "../components/CommentSection";
 import QueryTimeline from "../components/QueryTimeline";
@@ -7,6 +8,8 @@ import QueryTimeline from "../components/QueryTimeline";
 const QueryDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.user.data);
+  const userRole = user?.role?.toLowerCase();
   const [query, setQuery] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -130,55 +133,58 @@ const QueryDetails = () => {
             </p>
           </div>
 
-          {/* Java AI Analysis Section - PERMANENT DISPLAY */}
-          {query.javaAnalysis && (
-            <div className="mb-5 rounded-xl border border-purple-200 bg-purple-50 p-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🤖</span>
-                <h4 className="text-sm font-semibold text-purple-800">
-                  Java AI Analysis
-                </h4>
+          {/* Java AI Analysis Section - ONLY for Supervisor and Admin */}
+          {(userRole === "supervisor" || userRole === "admin") &&
+            query.javaAnalysis && (
+              <div className="mb-5 rounded-xl border border-purple-200 bg-purple-50 p-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🤖</span>
+                  <h4 className="text-sm font-semibold text-purple-800">
+                    Java AI Analysis
+                  </h4>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-4">
+                  <div>
+                    <span className="text-xs text-purple-600">
+                      Suggested Priority:
+                    </span>
+                    <span
+                      className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        query.javaAnalysis.priority === "High"
+                          ? "bg-rose-100 text-rose-700"
+                          : query.javaAnalysis.priority === "Medium"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {query.javaAnalysis.priority}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-purple-600">
+                      Urgency Score:
+                    </span>
+                    <span className="ml-2 text-sm font-bold text-purple-800">
+                      {query.javaAnalysis.score}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-xs text-purple-600">
+                      Analyzed At:
+                    </span>
+                    <span className="ml-2 text-xs text-purple-600">
+                      {new Date(query.javaAnalysis.analyzedAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                {query.javaAnalysis.matches &&
+                  query.javaAnalysis.matches.length > 0 && (
+                    <p className="mt-2 text-xs text-purple-600">
+                      Matched keywords: {query.javaAnalysis.matches.join(", ")}
+                    </p>
+                  )}
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-4">
-                <div>
-                  <span className="text-xs text-purple-600">
-                    Suggested Priority:
-                  </span>
-                  <span
-                    className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      query.javaAnalysis.priority === "High"
-                        ? "bg-rose-100 text-rose-700"
-                        : query.javaAnalysis.priority === "Medium"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-emerald-100 text-emerald-700"
-                    }`}
-                  >
-                    {query.javaAnalysis.priority}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-purple-600">
-                    Urgency Score:
-                  </span>
-                  <span className="ml-2 text-sm font-bold text-purple-800">
-                    {query.javaAnalysis.score}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-xs text-purple-600">Analyzed At:</span>
-                  <span className="ml-2 text-xs text-purple-600">
-                    {new Date(query.javaAnalysis.analyzedAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-              {query.javaAnalysis.matches &&
-                query.javaAnalysis.matches.length > 0 && (
-                  <p className="mt-2 text-xs text-purple-600">
-                    Matched keywords: {query.javaAnalysis.matches.join(", ")}
-                  </p>
-                )}
-            </div>
-          )}
+            )}
 
           {/* Image Section */}
           {query.imageUrl && (
