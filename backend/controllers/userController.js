@@ -296,10 +296,24 @@ exports.getUser = async (req, res) => {
       });
     }
 
+    // Fetch queries for students to calculate stats
+    let userResponse = user.toObject();
+
+    if (user.role === "student") {
+      const queries = await queryModel.find({ user: id });
+      userResponse.queries = queries;
+      userResponse.queryStats = {
+        total: queries.length,
+        pending: queries.filter((q) => q.status === "Pending").length,
+        inProgress: queries.filter((q) => q.status === "In Progress").length,
+        resolved: queries.filter((q) => q.status === "Resolved").length,
+      };
+    }
+
     return res.status(200).json({
       success: true,
       message: "user details fetched successfully",
-      user: user,
+      user: userResponse,
     });
   } catch (err) {
     console.error("Get User Error:", err);
@@ -442,6 +456,33 @@ exports.getEscalatedQueries = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching escalated queries",
+      error: err.message,
+    });
+  }
+};
+
+
+exports.getAvailableSupervisors = async (req, res) => {
+  try {
+    const { excludeId } = req.query;
+    const query = { role: "supervisor" };
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+    
+    const supervisors = await userModel
+      .find(query)
+      .select("firstName lastName email");
+    
+    return res.status(200).json({
+      success: true,
+      supervisors: supervisors,
+    });
+  } catch (err) {
+    console.error("Get Available Supervisors Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching available supervisors",
       error: err.message,
     });
   }

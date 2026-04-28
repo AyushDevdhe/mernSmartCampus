@@ -13,6 +13,10 @@ export const UpdateQuery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [existingImage, setExistingImage] = useState(null);
+
   // Fetch the query data when component mounts
   useEffect(() => {
     const fetchQuery = async () => {
@@ -25,6 +29,7 @@ export const UpdateQuery = () => {
           setTitle(queryToEdit.title);
           setPriority(queryToEdit.priority);
           setDescription(queryToEdit.description);
+          setExistingImage(queryToEdit.imageUrl);
         } else {
           console.error("Query not found");
           navigate("/dashboard");
@@ -62,30 +67,41 @@ export const UpdateQuery = () => {
     return Object.keys(newError).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateInput()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await updateQuery(id, {
-        title,
-        description,
-        priority,
-      });
-
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error updating query:", error);
-      alert(error.response?.data?.message || "Failed to update query");
-    } finally {
-      setIsSubmitting(false);
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validateInput()) {
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  const formData = new FormData();
+  formData.append("title", title);
+  formData.append("priority", priority);
+  formData.append("description", description);
+  if (image) {
+    formData.append("image", image);
+  }
+
+  try {
+    await updateQuery(id, formData);
+    navigate("/dashboard");
+  } catch (error) {
+    console.error("Error updating query:", error);
+    alert(error.response?.data?.message || "Failed to update query");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   if (isLoading) {
     return (
@@ -168,6 +184,50 @@ export const UpdateQuery = () => {
               {errors.description}
             </span>
           )}
+        </div>
+
+        {/* Image Upload Section */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-slate-700">
+            Attach Image (Optional)
+          </label>
+          <div className="mt-1 flex items-center gap-4">
+            <label className="cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100">
+              Choose New File
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,image/gif"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+            {image && (
+              <span className="text-sm text-slate-600">{image.name}</span>
+            )}
+          </div>
+          {existingImage && !imagePreview && (
+            <div className="mt-3">
+              <p className="text-sm text-slate-500 mb-1">Current Image:</p>
+              <img
+                src={`${process.env.REACT_APP_BASE_URL}${existingImage}`}
+                alt="Current"
+                className="max-h-48 rounded-lg border border-slate-200 object-cover"
+              />
+            </div>
+          )}
+          {imagePreview && (
+            <div className="mt-3">
+              <p className="text-sm text-slate-500 mb-1">New Image Preview:</p>
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-h-48 rounded-lg border border-slate-200 object-cover"
+              />
+            </div>
+          )}
+          <p className="mt-1 text-xs text-slate-500">
+            Supported formats: JPEG, PNG, JPG, GIF (Max 5MB)
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-3">

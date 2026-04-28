@@ -67,7 +67,7 @@ export const Login = () => {
         <div>
           <label
             htmlFor="email"
-            className="mb-1 block text-sm font-medium text-slate-700"
+            className="mb-1 block text-sm font-semibold text-slate-800"
           >
             Email
           </label>
@@ -76,12 +76,12 @@ export const Login = () => {
             type="email"
             placeholder="you@college.edu"
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-100"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-slate-700">
+          <label className="mb-1 block text-sm font-semibold text-slate-800">
             Password
           </label>
           <input
@@ -89,7 +89,7 @@ export const Login = () => {
             placeholder="Enter your password"
             onChange={(e) => setPassword(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleLoginData()}
-            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-2 focus:ring-sky-100"
           />
         </div>
 

@@ -63,6 +63,7 @@ mongoose
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/queries", queryRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // Test route
 app.get("/api/test", (req, res) => {
@@ -85,9 +86,9 @@ cron.schedule("0 * * * *", async () => {
 setTimeout(async () => {
   console.log("Initial escalation check on startup...");
   await checkEscalations();
-}, 4000);
+}, 5000);
 
 // Start server
-httpServer.listen(4000, () => {
-  console.log("Server running on port 4000");
+httpServer.listen(5000, () => {
+  console.log("Server running on port 5000");
 });
