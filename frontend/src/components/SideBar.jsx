@@ -23,7 +23,6 @@ const supervisorMenu = [
   { name: "Profile", path: "/profile", icon: "👤" },
 ];
 
-  
   const adminMenu = [
     { name: "Dashboard", path: "/admin-dashboard", icon: "📊" },
     { name: "Escalations", path: "/escalations", icon: "⚠️" },
@@ -46,7 +45,7 @@ const supervisorMenu = [
       {open && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
           onClick={() => setOpen(false)}
           aria-label="Close sidebar"
         />
@@ -54,28 +53,28 @@ const supervisorMenu = [
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-72 border-r border-slate-800 bg-slate-950 px-4 py-6 text-slate-200 shadow-2xl transition-transform duration-300 ${
+        className={`fixed left-0 top-0 z-50 h-screen w-72 border-r border-slate-200 px-4 py-6 bg-white text-slate-900 shadow-2xl transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="mb-6 border-b border-slate-800 pb-5">
+        <div className="mb-6 border-b border-slate-200 pb-5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-lg font-bold tracking-tight text-white">
+              <div className="text-lg font-bold tracking-tight text-slate-900">
                 SmartCampus
               </div>
-              <div className="text-xs text-slate-400">Query Command Center</div>
+              <div className="text-xs text-slate-500">Query Command Center</div>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="rounded-lg border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:bg-slate-800"
+              className="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
             >
               Close
             </button>
           </div>
           {user && (
-            <div className="mt-3 inline-flex rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-300">
+            <div className="mt-3 inline-flex rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-sky-700">
               {user?.role}
             </div>
           )}
@@ -87,7 +86,7 @@ const supervisorMenu = [
               <Link
                 key={index}
                 to={item.path}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                 onClick={() => setOpen(false)}
               >
                 <span className="text-base">{item.icon}</span>
@@ -99,7 +98,7 @@ const supervisorMenu = [
           <nav className="space-y-2">
             <Link
               to="/login"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
               onClick={() => setOpen(false)}
             >
               <span className="text-base">🔐</span>
@@ -107,7 +106,7 @@ const supervisorMenu = [
             </Link>
             <Link
               to="/signup"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
               onClick={() => setOpen(false)}
             >
               <span className="text-base">📝</span>
@@ -116,9 +115,9 @@ const supervisorMenu = [
           </nav>
         )}
 
-        <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">
+        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
           {/* Role-based Tip */}
-          <div className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-slate-400">
+          <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
             {userRole === "student" && (
               <>
                 💡 Tip: Use "Add Query" to raise issues quickly and track
