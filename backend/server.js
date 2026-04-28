@@ -85,9 +85,9 @@ cron.schedule("0 * * * *", async () => {
 setTimeout(async () => {
   console.log("Initial escalation check on startup...");
   await checkEscalations();
-}, 5000);
+}, 4000);
 
 // Start server
-httpServer.listen(5000, () => {
-  console.log("Server running on port 5000");
+httpServer.listen(4000, () => {
+  console.log("Server running on port 4000");
 });
