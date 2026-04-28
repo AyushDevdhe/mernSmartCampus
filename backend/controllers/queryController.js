@@ -2,57 +2,10 @@ const userModel = require("../models/userModel");
 const queryModel = require("../models/queryModel");
 const { createNotification } = require("./notificationController");
 const mailSender = require("../utils/mailSender"); 
-exports.createQuery = async (req, res) => {
-  try {
-    const { id } = req.user;
-    const { title, description, priority } = req.body;
 
-    if (!title || !description || !priority || !id) {
-      return res.status(400).json({
-        success: false,
-        message: "all input fields required",
-      });
-    }
+const { analyzeWithJava } = require("../services/javaAnalyzerService");
 
-    const user = await userModel.findById(id);
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "no such logged in user found in the db",
-      });
-    }
-
-    const newQuery = await queryModel.create({
-      user: id,
-      title: title,
-      description: description,
-      priority: priority,
-      status: "Pending",
-      assignedTo: null,
-    });
-
-    // Emit WebSocket event for real-time update
-    const io = req.app.get("io");
-    if (io) {
-      io.emit("queryCreated", newQuery);
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "query created successfully",
-      query: newQuery,
-      userEmail: user.email,
-    });
-  } catch (err) {
-    console.error("Create Query Error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "internal server error in create query controller",
-      error: err.message,
-    });
-  }
-};
 
 exports.getUserQueries = async (req, res) => {
   try {
@@ -256,6 +209,7 @@ exports.updateQuery = async (req, res) => {
     const { id } = req.user;
     const { queryId } = req.params;
     const { title, description, priority } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     if (!title || !description || !priority) {
       return res.status(400).json({
@@ -280,13 +234,19 @@ exports.updateQuery = async (req, res) => {
       });
     }
 
+    const updateData = {
+      title,
+      description,
+      priority,
+    };
+
+    if (imageUrl) {
+      updateData.imageUrl = imageUrl;
+    }
+
     const updatedQuery = await queryModel.findByIdAndUpdate(
       queryId,
-      {
-        title,
-        description,
-        priority,
-      },
+      updateData,
       { new: true, runValidators: true },
     );
 
@@ -750,6 +710,91 @@ exports.getActionHistory = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching action history",
+      error: err.message,
+    });
+  }
+};
+
+
+exports.createQuery = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { title, description, priority } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    if (!title || !description || !priority || !id) {
+      return res.status(400).json({
+        success: false,
+        message: "all input fields required",
+      });
+    }
+
+    // Call Java analyzer
+    let javaAnalysis = null;
+    try {
+      console.log("🤖 Calling Java analyzer for:", description.substring(0, 50));
+      javaAnalysis = await analyzeWithJava(description);
+      console.log("✅ Java Analysis Result:", javaAnalysis);
+    } catch (err) {
+      console.log("⚠️ Java analyzer not available:", err.message);
+    }
+
+    const user = await userModel.findById(id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "no such logged in user found in the db",
+      });
+    }
+
+    const newQuery = await queryModel.create({
+      user: id,
+      title: title,
+      description: description,
+      priority: priority,
+      status: "Pending",
+      assignedTo: null,
+      imageUrl: imageUrl,
+    });
+
+    // Save Java analysis to database (if valid)
+    if (javaAnalysis && javaAnalysis.priority && !javaAnalysis.fallback) {
+      newQuery.javaAnalysis = {
+        priority: javaAnalysis.priority,
+        score: javaAnalysis.score,
+        matches: javaAnalysis.matches || [],
+        analyzedAt: new Date()
+      };
+      await newQuery.save();
+      console.log("✅ Java analysis saved to database");
+    }
+
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("queryCreated", newQuery);
+    }
+
+    const response = {
+      success: true,
+      message: "query created successfully",
+      query: newQuery,
+      userEmail: user.email,
+    };
+
+    if (javaAnalysis && javaAnalysis.priority && !javaAnalysis.fallback) {
+      response.javaAnalysis = javaAnalysis;
+      if (javaAnalysis.priority !== priority) {
+        response.warning = `🤖 Java AI suggests "${javaAnalysis.priority}" priority (Score: ${javaAnalysis.score})`;
+      }
+    }
+
+    return res.status(200).json(response);
+  } catch (err) {
+    console.error("Create Query Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "internal server error in create query controller",
       error: err.message,
     });
   }

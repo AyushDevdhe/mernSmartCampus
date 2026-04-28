@@ -5,8 +5,11 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export const addQuery = (data) => {
-  return api.post("/queries/create", data);
+// For file upload, we need to send FormData
+export const addQuery = (formData) => {
+  return api.post("/queries/create", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
 export const getQueriesByUser = () => {
@@ -29,8 +32,11 @@ export const deleteQuery = (id) => {
   return api.delete(`/queries/delete/${id}`);
 };
 
-export const updateQuery = (id, data) => {
-  return api.put(`/queries/update/${id}`, data);
+// For file upload in update
+export const updateQuery = (id, formData) => {
+  return api.put(`/queries/update/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
 export const getAllSupervisors = () => {

@@ -7,20 +7,21 @@ const SideBar = ({ open, setOpen }) => {
   const userRole = user?.role?.toLowerCase();
 
   // Student Sidebar Menu with icons
-  const studentMenu = [
-    { name: "Dashboard", path: "/dashboard", icon: "📊" },
-    { name: "Add Query", path: "/add-query", icon: "➕" },
-    { name: "My Queries", path: "/dashboard", icon: "📋" },
-    { name: "Profile", path: "/profile", icon: "👤" },
-  ];
+const studentMenu = [
+  { name: "Dashboard", path: "/dashboard", icon: "📊" },
+  { name: "Add Query", path: "/add-query", icon: "➕" },
+  { name: "In Progress", path: "/in-progress", icon: "⚡" },
+  { name: "Resolved", path: "/my-queries", icon: "✅" },
+  { name: "Profile", path: "/profile", icon: "👤" },
+];
 
   // Supervisor Sidebar Menu with icons
-  const supervisorMenu = [
-    { name: "Dashboard", path: "/supervisor-dashboard", icon: "📊" },
-    { name: "Assigned Queries", path: "/supervisor-dashboard", icon: "📌" },
-    { name: "Resolve Queries", path: "/supervisor-dashboard", icon: "✅" },
-    { name: "Profile", path: "/profile", icon: "👤" },
-  ];
+const supervisorMenu = [
+  { name: "Dashboard", path: "/supervisor-dashboard", icon: "📊" },
+  { name: "Assigned Queries", path: "/assigned-queries", icon: "📌" },
+  { name: "Resolved Queries", path: "/resolved-queries", icon: "✅" },
+  { name: "Profile", path: "/profile", icon: "👤" },
+];
 
   
   const adminMenu = [

@@ -7,7 +7,7 @@ import {
   updateQueryStatus,
   getEscalatedWarnings,
 } from "../services/QueryApis";
-import CommentSection from "../components/CommentSection";
+import "../css/SupervisorDashboard.css";
 
 const SupervisorDashboard = () => {
   const user = useSelector((state) => state.user.data);
@@ -17,12 +17,9 @@ const SupervisorDashboard = () => {
   const [allQueries, setAllQueries] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
-  const [, setAdminActions] = useState([]);
   const [escalationWarnings, setEscalationWarnings] = useState([]);
-  const [expandedQueryId, setExpandedQueryId] = useState(null);
 
   useEffect(() => {
-    // Redirect if not supervisor
     if (userRole !== "supervisor") {
       if (userRole === "admin") {
         navigate("/admin-dashboard", { replace: true });
@@ -34,10 +31,6 @@ const SupervisorDashboard = () => {
     }
   }, [userRole, navigate]);
 
-  const toggleComments = (queryId) => {
-    setExpandedQueryId(expandedQueryId === queryId ? null : queryId);
-  };
-
   const fetchAllQueries = async () => {
     setIsLoading(true);
     try {
@@ -47,49 +40,42 @@ const SupervisorDashboard = () => {
       }
     } catch (error) {
       console.error("Error fetching queries:", error);
-      alert(error.response?.data?.message || "Failed to fetch queries");
     } finally {
       setIsLoading(false);
     }
   };
 
-const fetchEscalationWarnings = async () => {
-  try {
-    const res = await getEscalatedWarnings();
-    if (res?.data?.success) {
-      const newWarnings = res.data.escalatedWarnings;
-      setEscalationWarnings(newWarnings);
+  const fetchEscalationWarnings = async () => {
+    try {
+      const res = await getEscalatedWarnings();
+      if (res?.data?.success) {
+        const newWarnings = res.data.escalatedWarnings;
+        setEscalationWarnings(newWarnings);
 
-      // Show alert only for NEW warnings (not seen before)
-      const unseenWarnings = newWarnings.filter(
-        (warning) => !localStorage.getItem(`warning_seen_${warning._id}`),
-      );
-
-      if (unseenWarnings.length > 0) {
-        alert(
-          `⚠️ Attention: ${unseenWarnings.length} new query(s) have exceeded 24 hours without resolution!`,
+        const unseenWarnings = newWarnings.filter(
+          (warning) => !localStorage.getItem(`warning_seen_${warning._id}`),
         );
-        // Mark these warnings as seen
-        unseenWarnings.forEach((warning) => {
-          localStorage.setItem(`warning_seen_${warning._id}`, "true");
-        });
+
+        if (unseenWarnings.length > 0) {
+          alert(
+            `⚠️ Attention: ${unseenWarnings.length} new query(s) have exceeded 24 hours without resolution!`,
+          );
+          unseenWarnings.forEach((warning) => {
+            localStorage.setItem(`warning_seen_${warning._id}`, "true");
+          });
+        }
       }
+    } catch (error) {
+      console.error("Error fetching escalation warnings:", error);
     }
-  } catch (error) {
-    console.error("Error fetching escalation warnings:", error);
-  }
-};
-  useEffect(() => {
-    if (userRole === "supervisor") {
-      fetchEscalationWarnings();
-      const interval = setInterval(fetchEscalationWarnings, 60000); // Check every minute
-      return () => clearInterval(interval);
-    }
-  }, [userRole]);
+  };
 
   useEffect(() => {
     if (userRole === "supervisor") {
       fetchAllQueries();
+      fetchEscalationWarnings();
+      const interval = setInterval(fetchEscalationWarnings, 60000);
+      return () => clearInterval(interval);
     }
   }, [userRole]);
 
@@ -125,47 +111,49 @@ const fetchEscalationWarnings = async () => {
     }
   };
 
-  // Filter queries (DEFINE THESE FIRST)
+  // Filter queries
   const pendingQueries = allQueries.filter(
     (q) => q.status === "Pending" && !q.assignedTo,
   );
   const assignedToMe = allQueries.filter(
     (q) => q.assignedTo?._id === user?._id && q.status !== "Resolved",
   );
-  const resolvedQueries = allQueries.filter(
-    (q) => q.assignedTo?._id === user?._id && q.status === "Resolved",
-  );
 
-  // Check for admin actions on assigned queries (MOVE THIS AFTER assignedToMe is defined)
-  useEffect(() => {
-    // Create a copy of assignedToMe to compare
-    const actions = assignedToMe.filter(
-      (q) => q.adminAction && q.adminAction !== "none",
-    );
+  // Calculate stats
+  const totalAssigned = assignedToMe.length;
+  const totalPending = pendingQueries.length;
+  const avgResolutionTime = "~2.5 days"; // This can be calculated from actual data
 
-    // Only update state if actions actually changed
-    setAdminActions((prevActions) => {
-      if (JSON.stringify(prevActions) !== JSON.stringify(actions)) {
-        return actions;
-      }
-      return prevActions;
-    });
+  const getPriorityIcon = (priority) => {
+    switch (priority) {
+      case "High":
+        return "🔴";
+      case "Medium":
+        return "🟡";
+      case "Low":
+        return "🟢";
+      default:
+        return "⚪";
+    }
+  };
 
-    // Show alerts for new actions (only once per action)
-    actions.forEach((action) => {
-      const seenKey = `action_seen_${action._id}`;
-      if (!localStorage.getItem(seenKey)) {
-        alert(
-          `⚠️ ADMIN ACTION on query "${action.title}": ${action.adminActionMessage || `Admin issued a ${action.adminAction}`}`,
-        );
-        localStorage.setItem(seenKey, "true");
-      }
-    });
-  }, [assignedToMe]); // Keep the dependency but it won't loop infinitely now
+  const getPriorityClass = (priority) => {
+    switch (priority) {
+      case "High":
+        return "priority-high";
+      case "Medium":
+        return "priority-medium";
+      case "Low":
+        return "priority-low";
+      default:
+        return "";
+    }
+  };
 
   if (userRole !== "supervisor") {
     return (
-      <div className="flex h-64 items-center justify-center">
+      <div className="supervisor-loading">
+        <div className="spinner"></div>
         <p>Redirecting...</p>
       </div>
     );
@@ -173,230 +161,228 @@ const fetchEscalationWarnings = async () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <p>Loading queries...</p>
+      <div className="supervisor-loading">
+        <div className="spinner"></div>
+        <p>Loading your dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h1 className="text-2xl font-bold text-slate-900">
-        Supervisor Dashboard
-      </h1>
-      <p className="text-sm text-slate-600">
-        Welcome, Supervisor {user?.firstName} {user?.lastName}
-      </p>
+    <div className="supervisor-dashboard">
+      {/* Welcome Section */}
+      <div className="welcome-section">
+        <div className="welcome-content">
+          <h1>Welcome back, {user?.firstName}! 👋</h1>
+          <p>Here's what's happening with your assigned queries today.</p>
+        </div>
+        <div className="welcome-stats">
+          <div className="stat-badge">
+            <span className="stat-value">{assignedToMe.length}</span>
+            <span className="stat-label">Active Queries</span>
+          </div>
+        </div>
+      </div>
 
-      {/* ADD ESCALATION WARNING BANNER HERE */}
+      {/* Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card assigned">
+          <div className="stat-icon">📋</div>
+          <div className="stat-info">
+            <span className="stat-number">{totalAssigned}</span>
+            <span className="stat-title">Assigned to Me</span>
+          </div>
+        </div>
+        <div className="stat-card pending">
+          <div className="stat-icon">⏳</div>
+          <div className="stat-info">
+            <span className="stat-number">{totalPending}</span>
+            <span className="stat-title">Available to Assign</span>
+          </div>
+        </div>
+        <div className="stat-card resolved">
+          <div className="stat-icon">✅</div>
+          <div className="stat-info">
+            <span className="stat-number" id="resolvedCount">
+              0
+            </span>
+            <span className="stat-title">Resolved This Month</span>
+          </div>
+        </div>
+        <div className="stat-card time">
+          <div className="stat-icon">⏱️</div>
+          <div className="stat-info">
+            <span className="stat-number">{avgResolutionTime}</span>
+            <span className="stat-title">Avg Resolution Time</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Escalation Warning Banner */}
       {escalationWarnings.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <span className="font-semibold text-amber-700">
-            ⚠️ Escalation Warning:
-          </span>
-          <span className="ml-2 text-sm text-amber-700">
-            {escalationWarnings.length} query(s) have exceeded 24 hours. Please
-            take action.
-          </span>
+        <div className="escalation-banner">
+          <span className="banner-icon">⚠️</span>
+          <div className="banner-content">
+            <strong>Escalation Warning:</strong>
+            <span>
+              {escalationWarnings.length} query(s) have exceeded 24 hours.
+              Please take action.
+            </span>
+          </div>
         </div>
       )}
 
-      {/* Pending Queries Section */}
-      <div className="mb-8 border rounded-lg p-4 shadow">
-        <h2 className="text-xl font-semibold mb-3 text-yellow-600">
-          📋 Incoming Student Queries ({pendingQueries.length})
-        </h2>
-        {pendingQueries.length === 0 ? (
-          <p className="text-gray-600">No pending queries to assign.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2">Student</th>
-                  <th className="px-4 py-2">Title</th>
-                  <th className="px-4 py-2">Description</th>
-                  <th className="px-4 py-2">Priority</th>
-                  <th className="px-4 py-2">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingQueries.map((query) => (
-                  <tr key={query._id} className="border-t">
-                    <td className="px-4 py-2">
-                      {query.user?.firstName} {query.user?.lastName}
-                    </td>
-                    <td className="px-4 py-2">{query.title}</td>
-                    <td className="px-4 py-2">{query.description}</td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={`font-bold ${
-                          query.priority === "High"
-                            ? "text-red-600"
-                            : query.priority === "Medium"
-                              ? "text-yellow-600"
-                              : "text-green-600"
-                        }`}
-                      >
-                        {query.priority}
+      {/* Two Column Layout */}
+      <div className="dashboard-columns">
+        {/* Pending Queries Section */}
+        <div className="column">
+          <div className="section-header">
+            <h2>📋 Available to Assign</h2>
+            <span className="section-badge">
+              {pendingQueries.length} pending
+            </span>
+          </div>
+
+          {pendingQueries.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">✅</div>
+              <p>No pending queries to assign.</p>
+            </div>
+          ) : (
+            <div className="queries-list">
+              {pendingQueries.map((query) => (
+                <div key={query._id} className="query-card pending-card">
+                  <div className="card-header">
+                    <div className="student-info">
+                      <span className="student-avatar">
+                        {query.user?.firstName?.charAt(0) || "S"}
                       </span>
-                    </td>
-                    <td className="px-4 py-2">
+                      <div>
+                        <div className="student-name">
+                          {query.user?.firstName} {query.user?.lastName}
+                        </div>
+                        <div className="query-title-small">{query.title}</div>
+                      </div>
+                    </div>
+                    <div
+                      className={`priority-tag ${getPriorityClass(query.priority)}`}
+                    >
+                      {getPriorityIcon(query.priority)} {query.priority}
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    <p className="query-description">{query.description}</p>
+                    <div className="card-footer">
                       <button
+                        className="btn-assign"
                         onClick={() => handleAssign(query._id)}
                         disabled={actionLoading === query._id}
-                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                       >
                         {actionLoading === query._id
                           ? "Assigning..."
-                          : "Assign to Me"}
+                          : "📌 Assign to Me"}
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Assigned to Me Section */}
+        <div className="column">
+          <div className="section-header">
+            <h2>🔧 In Progress</h2>
+            <span className="section-badge">
+              {assignedToMe.length} assigned
+            </span>
           </div>
-        )}
-      </div>
 
-      {/* Assigned to Me Section */}
-      <div className="mb-8 border rounded-lg p-4 shadow">
-        <h2 className="text-xl font-semibold mb-3 text-blue-600">
-          🔧 Assigned to Me ({assignedToMe.length})
-        </h2>
-        {assignedToMe.length === 0 ? (
-          <p className="text-gray-600">No queries assigned yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2">Student</th>
-                  <th className="px-4 py-2">Title</th>
-                  <th className="px-4 py-2">Description</th>
-                  <th className="px-4 py-2">Priority</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2">Admin Action</th>
-                  <th className="px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assignedToMe.map((query) => (
-                  <React.Fragment key={query._id}>
-                    <tr className="border-t">
-                      <td className="px-4 py-2">
-                        {query.user?.firstName} {query.user?.lastName}
-                      </td>
-                      <td className="px-4 py-2">{query.title}</td>
-                      <td className="px-4 py-2">{query.description}</td>
-                      <td className="px-4 py-2">{query.priority}</td>
-                      <td className="px-4 py-2">
-                        <span
-                          className={`px-2 py-1 rounded text-white text-sm ${
-                            query.status === "In Progress"
-                              ? "bg-blue-500"
-                              : "bg-yellow-500"
-                          }`}
-                        >
-                          {query.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        {query.adminAction && query.adminAction !== "none" ? (
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">
-                            ⚠️ {query.adminAction.toUpperCase()}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 text-xs">None</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2">
-                        {/* View Details Button */}
-                        <button
-                          onClick={() => navigate(`/query/${query._id}`)}
-                          className="mr-2 rounded bg-sky-600 px-3 py-1 text-sm font-medium text-white transition hover:bg-sky-700"
-                        >
-                          👁️ View
-                        </button>
-
-                        {/* Comments Button */}
-                        <button
-                          onClick={() => toggleComments(query._id)}
-                          className="mr-2 rounded bg-violet-600 px-3 py-1 text-sm font-medium text-white transition hover:bg-violet-700"
-                        >
-                          💬 Comments
-                        </button>
-
-                        {/* Mark Resolved Button */}
-                        {query.status === "In Progress" && (
-                          <button
-                            onClick={() =>
-                              handleStatusUpdate(query._id, "Resolved")
-                            }
-                            disabled={actionLoading === query._id}
-                            className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                          >
-                            {actionLoading === query._id
-                              ? "Updating..."
-                              : "Mark Resolved"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-
-                    {/* Expandable row for comments */}
-                    {expandedQueryId === query._id && (
-                      <tr>
-                        <td colSpan="7" className="bg-slate-50 p-4">
-                          <CommentSection
-                            queryId={query._id}
-                            queryTitle={query.title}
-                          />
-                        </td>
-                      </tr>
+          {assignedToMe.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📋</div>
+              <p>No queries assigned to you yet.</p>
+            </div>
+          ) : (
+            <div className="queries-list">
+              {assignedToMe.map((query) => (
+                <div key={query._id} className="query-card assigned-card">
+                  <div className="card-header">
+                    <div className="student-info">
+                      <span className="student-avatar">
+                        {query.user?.firstName?.charAt(0) || "S"}
+                      </span>
+                      <div>
+                        <div className="student-name">
+                          {query.user?.firstName} {query.user?.lastName}
+                        </div>
+                        <div className="query-title-small">{query.title}</div>
+                      </div>
+                    </div>
+                    <div
+                      className={`priority-tag ${getPriorityClass(query.priority)}`}
+                    >
+                      {getPriorityIcon(query.priority)} {query.priority}
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    <p className="query-description">{query.description}</p>
+                    {query.adminAction && query.adminAction !== "none" && (
+                      <div className="admin-warning-tag">
+                        ⚠️ Admin Action: {query.adminAction.toUpperCase()}
+                      </div>
                     )}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                    <div className="card-footer">
+                      <button
+                        className="btn-view"
+                        onClick={() => navigate(`/query/${query._id}`)}
+                      >
+                        👁️ View
+                      </button>
+                      <button
+                        className="btn-resolve"
+                        onClick={() =>
+                          handleStatusUpdate(query._id, "Resolved")
+                        }
+                        disabled={actionLoading === query._id}
+                      >
+                        {actionLoading === query._id
+                          ? "..."
+                          : "✅ Mark Resolved"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Resolved Queries Section */}
-      <div className="border rounded-lg p-4 shadow">
-        <h2 className="text-xl font-semibold mb-3 text-green-600">
-          ✅ Resolved Queries ({resolvedQueries.length})
-        </h2>
-        {resolvedQueries.length === 0 ? (
-          <p className="text-gray-600">No resolved queries yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2">Student</th>
-                  <th className="px-4 py-2">Title</th>
-                  <th className="px-4 py-2">Resolved On</th>
-                </tr>
-              </thead>
-              <tbody>
-                {resolvedQueries.map((query) => (
-                  <tr key={query._id} className="border-t">
-                    <td className="px-4 py-2">
-                      {query.user?.firstName} {query.user?.lastName}
-                    </td>
-                    <td className="px-4 py-2">{query.title}</td>
-                    <td className="px-4 py-2">
-                      {new Date(query.updatedAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Quick Actions */}
+      <div className="quick-actions">
+        <h3>Quick Actions</h3>
+        <div className="actions-grid">
+          <div
+            className="action-card"
+            onClick={() => navigate("/assigned-queries")}
+          >
+            <span className="action-icon">📌</span>
+            <span>View All Assigned</span>
           </div>
-        )}
+          <div
+            className="action-card"
+            onClick={() => navigate("/resolved-queries")}
+          >
+            <span className="action-icon">✅</span>
+            <span>View Resolved History</span>
+          </div>
+          <div className="action-card" onClick={() => navigate("/profile")}>
+            <span className="action-icon">👤</span>
+            <span>View Profile</span>
+          </div>
+        </div>
       </div>
     </div>
   );

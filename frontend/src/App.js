@@ -7,14 +7,14 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { setUserData, setIsAuthenticated } from "../src/app/userSlices.js";
 import { useDispatch } from "react-redux";
 
-//importing pages here
+
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
-import Dashboard from "./pages/Dashboard.jsx"; // Student Dashboard
-import SupervisorDashboard from "./pages/SupervisorDashboard.jsx"; // ADD THIS
-import AdminDashboard from "./pages/AdminDashboard.jsx"; // ADD THIS
+import Dashboard from "./pages/Dashboard.jsx"; 
+import SupervisorDashboard from "./pages/SupervisorDashboard.jsx"; 
+import AdminDashboard from "./pages/AdminDashboard.jsx"; 
 import Layout from "./components/Layout.jsx";
 import AddQuery from "./pages/AddQuery.jsx";
 import UpdateQuery from "./pages/UpdateQuery.jsx";
@@ -30,6 +30,10 @@ import QueryDetails from "./pages/QueryDetails.jsx";
 import Profile from "./pages/Profile.jsx";
 import Escalations from "./pages/Escalations.jsx";
 import ActionHistory from "./pages/ActionHistory.jsx";
+import AssignedQueries from "./pages/AssignedQueries.jsx";
+import ResolvedQueries from "./pages/ResolvedQueries.jsx";
+import MyQueries from "./pages/MyQueries.jsx";
+import InProgress from "./pages/InProgress.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -160,6 +164,41 @@ function App() {
             <RoleBasedRoute allowedRoles={["admin"]}>
               <ActionHistory />
             </RoleBasedRoute>
+          ),
+        },
+
+        {
+          path: "assigned-queries",
+          element: (
+            <RoleBasedRoute allowedRoles={["supervisor"]}>
+              <AssignedQueries />
+            </RoleBasedRoute>
+          ),
+        },
+        {
+          path: "resolved-queries",
+          element: (
+            <RoleBasedRoute allowedRoles={["supervisor"]}>
+              <ResolvedQueries />
+            </RoleBasedRoute>
+          ),
+        },
+
+        {
+          path: "my-queries",
+          element: (
+            <ProtectedRoute>
+              <MyQueries />
+            </ProtectedRoute>
+          ),
+        },
+
+        {
+          path: "in-progress",
+          element: (
+            <ProtectedRoute>
+              <InProgress />
+            </ProtectedRoute>
           ),
         },
       ],

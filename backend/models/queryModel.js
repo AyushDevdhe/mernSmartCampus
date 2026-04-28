@@ -31,10 +31,18 @@ const querySchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
-
+    imageUrl: {
+      type: String,
+      default: null,
+    },
+    // ADD THIS - Java Analysis field
+    javaAnalysis: {
+      type: Object,
+      default: null,
+    },
     adminAction: {
       type: String,
-      enum: ["none", "warning", "penalty", "escalated", "reassigned"], 
+      enum: ["none", "warning", "penalty", "escalated", "reassigned"],
       default: "none",
     },
     adminActionMessage: {
@@ -45,7 +53,6 @@ const querySchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
     escalationLevel: {
       type: String,
       enum: ["none", "warning_24hr", "critical_48hr"],
@@ -61,14 +68,12 @@ const querySchema = new mongoose.Schema(
   },
 );
 
-// Virtual populate for comments
 querySchema.virtual("comments", {
   ref: "Comment",
   localField: "_id",
   foreignField: "query",
 });
 
-// Ensure virtuals are included in JSON output
 querySchema.set("toJSON", { virtuals: true });
 querySchema.set("toObject", { virtuals: true });
 

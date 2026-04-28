@@ -63,6 +63,7 @@ mongoose
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/queries", queryRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // Test route
 app.get("/api/test", (req, res) => {

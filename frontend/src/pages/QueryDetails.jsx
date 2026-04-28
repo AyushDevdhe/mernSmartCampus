@@ -130,6 +130,85 @@ const QueryDetails = () => {
             </p>
           </div>
 
+          {/* Java AI Analysis Section - PERMANENT DISPLAY */}
+          {query.javaAnalysis && (
+            <div className="mb-5 rounded-xl border border-purple-200 bg-purple-50 p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🤖</span>
+                <h4 className="text-sm font-semibold text-purple-800">
+                  Java AI Analysis
+                </h4>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-4">
+                <div>
+                  <span className="text-xs text-purple-600">
+                    Suggested Priority:
+                  </span>
+                  <span
+                    className={`ml-2 inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
+                      query.javaAnalysis.priority === "High"
+                        ? "bg-rose-100 text-rose-700"
+                        : query.javaAnalysis.priority === "Medium"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-emerald-100 text-emerald-700"
+                    }`}
+                  >
+                    {query.javaAnalysis.priority}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-purple-600">
+                    Urgency Score:
+                  </span>
+                  <span className="ml-2 text-sm font-bold text-purple-800">
+                    {query.javaAnalysis.score}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xs text-purple-600">Analyzed At:</span>
+                  <span className="ml-2 text-xs text-purple-600">
+                    {new Date(query.javaAnalysis.analyzedAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              {query.javaAnalysis.matches &&
+                query.javaAnalysis.matches.length > 0 && (
+                  <p className="mt-2 text-xs text-purple-600">
+                    Matched keywords: {query.javaAnalysis.matches.join(", ")}
+                  </p>
+                )}
+            </div>
+          )}
+
+          {/* Image Section */}
+          {query.imageUrl && (
+            <div className="mb-5">
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Attached Image
+              </h4>
+              <img
+                src={`http://localhost:5000${query.imageUrl}`}
+                alt="Query Attachment"
+                className="max-h-96 rounded-xl border border-slate-200 object-contain"
+                onError={(e) => {
+                  console.error("Image failed to load:", e.target.src);
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "block";
+                }}
+              />
+              <p
+                style={{
+                  display: "none",
+                  color: "red",
+                  fontSize: "12px",
+                  marginTop: "8px",
+                }}
+              >
+                Image failed to load. File may be missing.
+              </p>
+            </div>
+          )}
+
           <div className="grid gap-4 border-t border-slate-200 pt-4 sm:grid-cols-2">
             <div>
               <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
