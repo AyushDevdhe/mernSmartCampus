@@ -19,6 +19,7 @@ const studentMenu = [
 const supervisorMenu = [
   { name: "Dashboard", path: "/supervisor-dashboard", icon: "📊" },
   { name: "Assigned Queries", path: "/assigned-queries", icon: "📌" },
+  { name: "Flagged Queries", path: "/flagged-queries", icon: "⚠️" },
   { name: "Resolved Queries", path: "/resolved-queries", icon: "✅" },
   { name: "Profile", path: "/profile", icon: "👤" },
 ];
@@ -27,6 +28,7 @@ const supervisorMenu = [
     { name: "Dashboard", path: "/admin-dashboard", icon: "📊" },
     { name: "Escalations", path: "/escalations", icon: "⚠️" },
     { name: "Action History", path: "/action-history", icon: "📜" },
+    { name: "Blocked Students", path: "/blocked-students", icon: "🚫" },
     { name: "Profile", path: "/profile", icon: "👤" },
   ];
 

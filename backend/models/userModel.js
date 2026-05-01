@@ -35,6 +35,40 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "supervisor", "admin"],
       default: "student",
     },
+
+    offenseCount: {
+      type: Number,
+      default: 0,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockedAt: {
+      type: Date,
+      default: null,
+    },
+    blockedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    blockReason: {
+      type: String,
+      default: null,
+    },
+    lastOffenseAt: {
+      type: Date,
+      default: null,
+    },
+    offenseHistory: [
+      {
+        reason: String,
+        queryTitle: String,
+        queryId: { type: mongoose.Schema.Types.ObjectId, ref: "Query" },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );

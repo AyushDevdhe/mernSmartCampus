@@ -20,6 +20,7 @@ const {
   getQueryById,
   reassignSupervisor,
   getActionHistory,
+  markAsSpam,
 } = require("../controllers/queryController");
 
 // POST routes with image upload
@@ -44,5 +45,7 @@ router.get("/action-history", verifyJWT, getActionHistory);
 
 
 router.get("/:queryId", verifyJWT, getQueryById);
+
+router.put("/mark-spam/:queryId", verifyJWT, markAsSpam);
 
 module.exports = router;

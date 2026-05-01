@@ -45,34 +45,34 @@ const AdminDashboard = () => {
     }
   }, [userRole, navigate]);
 
-const fetchCriticalEscalations = useCallback(async () => {
-  try {
-    const res = await getCriticalEscalations();
-    if (res?.data?.success) {
-      const newEscalations = res.data.criticalEscalations;
+  const fetchCriticalEscalations = useCallback(async () => {
+    try {
+      const res = await getCriticalEscalations();
+      if (res?.data?.success) {
+        const newEscalations = res.data.criticalEscalations;
 
-      // Check for NEW escalations (not seen before)
-      const unseenEscalations = newEscalations.filter(
-        (esc) => !localStorage.getItem(`critical_seen_${esc._id}`),
-      );
-
-      // Show alert only for new escalations
-      if (unseenEscalations.length > 0) {
-        alert(
-          `🚨 URGENT: ${unseenEscalations.length} new query(s) have exceeded 48 hours! Immediate attention required.`,
+        // Check for NEW escalations (not seen before)
+        const unseenEscalations = newEscalations.filter(
+          (esc) => !localStorage.getItem(`critical_seen_${esc._id}`),
         );
-        // Mark these escalations as seen
-        unseenEscalations.forEach((esc) => {
-          localStorage.setItem(`critical_seen_${esc._id}`, "true");
-        });
-      }
 
-      setCriticalEscalations(newEscalations);
+        // Show alert only for new escalations
+        if (unseenEscalations.length > 0) {
+          alert(
+            `🚨 URGENT: ${unseenEscalations.length} new query(s) have exceeded 48 hours! Immediate attention required.`,
+          );
+          // Mark these escalations as seen
+          unseenEscalations.forEach((esc) => {
+            localStorage.setItem(`critical_seen_${esc._id}`, "true");
+          });
+        }
+
+        setCriticalEscalations(newEscalations);
+      }
+    } catch (error) {
+      console.error("Error fetching critical escalations:", error);
     }
-  } catch (error) {
-    console.error("Error fetching critical escalations:", error);
-  }
-}, []);
+  }, []);
 
   useEffect(() => {
     if (userRole === "admin") {
@@ -197,6 +197,7 @@ const fetchCriticalEscalations = useCallback(async () => {
 
   const filteredQueries = allQueries.filter((q) => {
     if (filter === "all") return true;
+    if (filter === "flagged") return q.isSpam === "suspicious";
     return q.status === filter;
   });
 
@@ -356,6 +357,14 @@ const fetchCriticalEscalations = useCallback(async () => {
         >
           In Progress
         </button>
+
+        <button
+          className={`filter-btn ${filter === "flagged" ? "active" : "inactive"}`}
+          onClick={() => setFilter("flagged")}
+        >
+          ⚠️ Flagged
+        </button>
+
         <button
           className={`filter-btn ${filter === "Resolved" ? "active" : "inactive"}`}
           onClick={() => setFilter("Resolved")}
@@ -385,6 +394,7 @@ const fetchCriticalEscalations = useCallback(async () => {
                 <th>Status</th>
                 <th>Assigned To</th>
                 <th>Created</th>
+                <th>Flag</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -408,10 +418,24 @@ const fetchCriticalEscalations = useCallback(async () => {
                   </td>
                   <td>{query.assignedTo?.firstName || "Not Assigned"}</td>
                   <td>{new Date(query.createdAt).toLocaleDateString()}</td>
+
+                  {/* FLAG BADGE CELL */}
+                  <td>
+                    {query.isSpam === "suspicious" && (
+                      <span className="flag-badge suspicious">⚠️ Flagged</span>
+                    )}
+                    {query.isSpam === "spam" && (
+                      <span className="flag-badge spam">🚫 Spam</span>
+                    )}
+                    {(!query.isSpam || query.isSpam === "clean") && (
+                      <span className="flag-badge clean">✓ Clean</span>
+                    )}
+                  </td>
+
                   <td>
                     <button
                       onClick={() => navigate(`/query/${query._id}`)}
-                      className="rounded bg-sky-600 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-sky-700"
+                      className="..."
                     >
                       👁️ View
                     </button>
@@ -765,6 +789,6 @@ const fetchCriticalEscalations = useCallback(async () => {
       )}
     </div>
   );
-};;
+};
 
 export default AdminDashboard;

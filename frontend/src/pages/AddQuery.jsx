@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addQuery } from "../services/QueryApis";
-
+import SpamAlert from "../components/SpamAlert";
 export const AddQuery = () => {
   const navigate = useNavigate();
 
@@ -13,6 +13,7 @@ export const AddQuery = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [javaAnalysis, setJavaAnalysis] = useState(null);
+  const [spamAlert, setSpamAlert] = useState(null);
 
   const validateInput = () => {
     const newError = {};
@@ -45,6 +46,13 @@ export const AddQuery = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+      const userData = JSON.parse(localStorage.getItem("user") || "{}");
+      if (userData?.isBlocked) {
+        alert("🚫 Your account has been BLOCKED. You cannot submit queries.");
+        navigate("/login");
+        return;
+      }
+
     if (!validateInput()) {
       return;
     }
@@ -62,6 +70,10 @@ export const AddQuery = () => {
     try {
       const response = await addQuery(formData);
 
+       if (response?.data?.spamWarning) {
+         alert(response.data.spamWarning.message);
+       }
+
       // Check if Java analysis came back
       if (response?.data?.javaAnalysis) {
         setJavaAnalysis(response.data.javaAnalysis);
@@ -76,6 +88,12 @@ export const AddQuery = () => {
     } catch (error) {
       console.error(error);
       alert(error.response?.data?.message || "Failed to add query");
+
+      if (error.response?.data?.spamDetails) {
+        setSpamAlert(error.response.data.spamDetails);
+      } else {
+        alert(error.response?.data?.message || "Failed to add query");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -239,6 +257,10 @@ export const AddQuery = () => {
           {isSubmitting ? "Submitting..." : "Submit Query"}
         </button>
       </form>
+
+      {spamAlert && (
+        <SpamAlert spamDetails={spamAlert} onClose={() => setSpamAlert(null)} />
+      )}
     </div>
   );
 };

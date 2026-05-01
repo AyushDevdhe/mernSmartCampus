@@ -1,6 +1,7 @@
 package com.smartcampus;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -107,9 +108,15 @@ public class QueryAnalyzer {
             suggestedPriority = "Low";
         }
 
-        return String.format("{\"priority\":\"%s\",\"score\":%d,\"matches\":%s}",
-                suggestedPriority,
-                urgencyScore,
-                matchedKeywords.toString());
+// Convert matches array to JSON string with quotes
+String matchesJson = matchedKeywords.stream()
+    .map(s -> "\"" + s + "\"")
+    .collect(Collectors.joining(",", "[", "]"));
+
+return String.format("{\"priority\":\"%s\",\"score\":%d,\"matches\":%s}",
+    suggestedPriority,
+    urgencyScore,
+    matchesJson
+);
     }
 }

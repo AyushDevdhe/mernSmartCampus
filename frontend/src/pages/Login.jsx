@@ -51,6 +51,14 @@ export const Login = () => {
       console.log("Error Status: ", error.response?.status);
       console.log("Error Data: ", error.response?.data);
       alert(error.response?.data?.message || "Login failed");
+
+      if (error.response?.data?.blocked) {
+        alert(
+          `🚫 ${error.response.data.message}\nReason: ${error.response.data.blockReason || "Policy violation"}`,
+        );
+      } else {
+        alert(error.response?.data?.message || "Login failed");
+      }
     } finally {
       setIsLoading(false);
     }
