@@ -43,6 +43,13 @@ const Dashboard = () => {
     }
   }, [user, userRole]);
 
+  useEffect(() => {
+    if (user?.isBlocked) {
+      alert("🚫 Your account has been BLOCKED. Contact Admin.");
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
   // Calculate stats
   const totalQueries = userQueries.length;
   const resolvedQueries = userQueries.filter(

@@ -158,3 +158,27 @@
 .modal-content {
   @apply w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl;
 }
+
+/* Flag Badges */
+.flag-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.flag-badge.suspicious {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.flag-badge.spam {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.flag-badge.clean {
+  background: #d1fae5;
+  color: #059669;
+}

@@ -219,6 +219,16 @@ exports.login = async (req, res) => {
     const user = await userModel.findOne({ email });
     console.log("User found in DB:", user ? "Yes" : "No");
 
+    if (user && user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "🚫 Your account has been BLOCKED due to policy violations. Please contact Admin.",
+        blocked: true,
+        blockReason: user.blockReason,
+      });
+    }
+
     if (!user) {
       console.log("User not found for email:", email);
       return res.status(404).json({
@@ -483,6 +493,65 @@ exports.getAvailableSupervisors = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching available supervisors",
+      error: err.message,
+    });
+  }
+};
+
+// Get all blocked students (for Admin)
+exports.getBlockedStudents = async (req, res) => {
+  try {
+    const students = await userModel
+      .find({ isBlocked: true, role: "student" })
+      .select("-password")
+      .sort({ blockedAt: -1 });
+    
+    return res.status(200).json({
+      success: true,
+      students: students,
+    });
+  } catch (err) {
+    console.error("Get Blocked Students Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching blocked students",
+      error: err.message,
+    });
+  }
+};
+
+// Unblock a student (for Admin)
+exports.unblockStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    
+    const student = await userModel.findByIdAndUpdate(
+      studentId,
+      { 
+        isBlocked: false, 
+        blockedAt: null,
+        blockReason: null,
+        offenseCount: 0  // Reset offense count
+      },
+      { new: true }
+    );
+    
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: "Student unblocked successfully",
+    });
+  } catch (err) {
+    console.error("Unblock Student Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Error unblocking student",
       error: err.message,
     });
   }

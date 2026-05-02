@@ -328,6 +328,18 @@ const SupervisorDashboard = () => {
                   </div>
                   <div className="card-body">
                     <p className="query-description">{query.description}</p>
+
+                    {/* ========== ADD FLAG BADGE HERE ========== */}
+                    {query.isSpam === "suspicious" && (
+                      <div className="flag-badge suspicious">
+                        ⚠️ Flagged for Review
+                      </div>
+                    )}
+                    {query.isSpam === "spam" && (
+                      <div className="flag-badge spam">🚫 Blocked as Spam</div>
+                    )}
+                    {/* ======================================== */}
+
                     {query.adminAction && query.adminAction !== "none" && (
                       <div className="admin-warning-tag">
                         ⚠️ Admin Action: {query.adminAction.toUpperCase()}

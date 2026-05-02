@@ -27,3 +27,16 @@ export const getUser = () => {
 export const logOut = () => {
   return api.post("/users/logout");
 };
+
+export const checkUserBlockStatus = async () => {
+  try {
+    const res = await getUser();
+    if (res?.data?.user?.isBlocked) {
+      return { isBlocked: true, reason: res.data.user.blockReason };
+    }
+    return { isBlocked: false };
+  } catch (error) {
+    console.error("Error checking block status:", error);
+    return { isBlocked: false };
+  }
+};

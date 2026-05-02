@@ -425,3 +425,25 @@
     justify-content: center;
   }
 }
+
+/* Flag Badges */
+.flag-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+
+.flag-badge.suspicious {
+  background: #fef3c7;
+  color: #d97706;
+  border-left: 3px solid #eab308;
+}
+
+.flag-badge.spam {
+  background: #fee2e2;
+  color: #dc2626;
+  border-left: 3px solid #ef4444;
+}

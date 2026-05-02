@@ -7,6 +7,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { setUserData, setIsAuthenticated } from "../src/app/userSlices.js";
 import { useDispatch } from "react-redux";
 
+import { checkUserBlockStatus } from "./services/GetService";
+import { clearUserData } from "./app/userSlices";
 
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
@@ -34,9 +36,38 @@ import AssignedQueries from "./pages/AssignedQueries.jsx";
 import ResolvedQueries from "./pages/ResolvedQueries.jsx";
 import MyQueries from "./pages/MyQueries.jsx";
 import InProgress from "./pages/InProgress.jsx";
+import FlaggedQueries from "./pages/FlaggedQueries.jsx";
+import BlockedStudents from "./pages/BlockedStudents.jsx";
 
 function App() {
   const dispatch = useDispatch();
+
+  // Check block status periodically (every 30 seconds)
+  useEffect(() => {
+    const checkBlockStatus = async () => {
+      const userData = JSON.parse(localStorage.getItem("user") || "{}");
+      if (userData?._id) {
+        try {
+          const res = await checkUserBlockStatus();
+          if (res.isBlocked) {
+            dispatch(clearUserData());
+            localStorage.removeItem("user");
+            alert("🚫 Your account has been BLOCKED. Contact Admin.");
+            window.location.href = "/login";
+          }
+        } catch (err) {
+          console.error("Block check failed:", err);
+        }
+      }
+    };
+
+    // Check immediately
+    checkBlockStatus();
+
+    // Check every 30 seconds
+    const interval = setInterval(checkBlockStatus, 30000);
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -199,6 +230,24 @@ function App() {
             <ProtectedRoute>
               <InProgress />
             </ProtectedRoute>
+          ),
+        },
+
+        {
+          path: "flagged-queries",
+          element: (
+            <RoleBasedRoute allowedRoles={["supervisor"]}>
+              <FlaggedQueries />
+            </RoleBasedRoute>
+          ),
+        },
+
+        {
+          path: "blocked-students",
+          element: (
+            <RoleBasedRoute allowedRoles={["admin"]}>
+              <BlockedStudents />
+            </RoleBasedRoute>
           ),
         },
       ],

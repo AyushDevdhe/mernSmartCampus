@@ -62,6 +62,36 @@ const querySchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    isSpam: {
+      type: String,
+      enum: ["clean", "suspicious", "spam"],
+      default: "clean",
+    },
+    spamScore: {
+      type: Number,
+      default: 0,
+    },
+
+    // Add these fields to queryModel.js schema
+    spamReason: {
+      type: String,
+      default: null,
+    },
+    spamMarkedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    spamMarkedAt: {
+      type: Date,
+      default: null,
+    },
+
+    autoSpam: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
