@@ -4,7 +4,9 @@ const upload = require("../middlewares/upload");
 
 //importing middlewares here
 const { verifyJWT } = require("../middlewares/verifyJWT");
+const { getSimilarQueries } = require("../controllers/similarityController");
 
+const { batchResolveSimilar } = require("../controllers/queryController");
 //importing controllers here
 const {
   createQuery,
@@ -47,5 +49,8 @@ router.get("/action-history", verifyJWT, getActionHistory);
 router.get("/:queryId", verifyJWT, getQueryById);
 
 router.put("/mark-spam/:queryId", verifyJWT, markAsSpam);
+router.get("/similar/:queryId", verifyJWT, getSimilarQueries);
+
+router.post("/batch-resolve", verifyJWT, batchResolveSimilar);
 
 module.exports = router;

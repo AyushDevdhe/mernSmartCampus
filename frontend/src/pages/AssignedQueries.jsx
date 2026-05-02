@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getAllQueries, updateQueryStatus } from "../services/QueryApis";
 import CommentSection from "../components/CommentSection";
 import "../css/AssignedQueries.css";
+import SimilarQueriesModal from "../components/SimilarQueriesModal";
+import {
+  getAllQueries,
+  updateQueryStatus,
+  batchResolveQueries,
+} from "../services/QueryApis";
 
 const AssignedQueries = () => {
   const user = useSelector((state) => state.user.data);
@@ -12,6 +17,14 @@ const AssignedQueries = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [expandedQueryId, setExpandedQueryId] = useState(null);
+
+  const [showSimilarModal, setShowSimilarModal] = useState(false);
+  const [selectedQueryForSimilar, setSelectedQueryForSimilar] = useState(null);
+
+  const handleFindSimilar = (query) => {
+    setSelectedQueryForSimilar(query);
+    setShowSimilarModal(true);
+  };
 
   const fetchAssignedQueries = async () => {
     setIsLoading(true);
@@ -126,6 +139,14 @@ const AssignedQueries = () => {
                   >
                     👁️ View
                   </button>
+
+                  <button
+                    className="btn-similar"
+                    onClick={() => handleFindSimilar(query)}
+                  >
+                    🔍 Find Similar
+                  </button>
+
                   <button
                     className="btn-comment"
                     onClick={() => toggleComments(query._id)}
@@ -154,6 +175,32 @@ const AssignedQueries = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {showSimilarModal && selectedQueryForSimilar && (
+        <SimilarQueriesModal
+          queryId={selectedQueryForSimilar._id}
+          queryTitle={selectedQueryForSimilar.title}
+          onClose={() => {
+            setShowSimilarModal(false);
+            setSelectedQueryForSimilar(null);
+          }}
+          onBatchResolve={async (queryIds) => {
+            try {
+              const res = await batchResolveQueries(queryIds);
+              if (res?.data?.success) {
+                alert(
+                  `✅ ${res.data.resolvedCount} unresolved queries resolved successfully!`,
+                );
+                fetchAssignedQueries();
+                setShowSimilarModal(false);
+              }
+            } catch (error) {
+              console.error("Batch resolve failed:", error);
+              alert("Failed to batch resolve queries");
+            }
+          }}
+        />
       )}
     </div>
   );

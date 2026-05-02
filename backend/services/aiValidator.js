@@ -4,7 +4,6 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const validateQueryRelevance = async (title, description) => {
   try {
-    // FIX 1: gemini-pro is deprecated — use gemini-1.5-flash
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
@@ -15,20 +14,24 @@ const validateQueryRelevance = async (title, description) => {
       Description: ${description}
       ==============
 
-      IMPORTANT: Evaluate BOTH the title AND description together.
-      - The title alone having a valid campus keyword is NOT enough.
-      - The description must also describe a REAL, SPECIFIC, ACTIONABLE campus problem.
-      - "Are you coming? Lets go" under title "Electrical" is NOT a genuine query — it is casual conversation.
+      IMPORTANT RULES:
+      1. Evaluate BOTH title AND description together — title alone is NOT enough.
+      2. The description must clearly explain an ACTUAL problem the student is facing RIGHT NOW.
+      3. Watch for NEGATION — "Wifi is not down but I want to add a query" means there is NO problem. BLOCK IT.
+      4. Watch for HEDGING — "I just want to add", "testing", "checking" = not a real issue. BLOCK IT.
+      5. A genuine issue must be something a supervisor can ACT ON and FIX.
+      6. "Are you coming? Lets go" under title "Electrical" is NOT genuine.
+      7. "Wifi is not down but I want to add a query" is NOT genuine — student admitted there is no issue.
 
-      A GENUINE campus issue must:
-      1. Have a description that clearly explains the actual problem (not just a keyword in the title)
-      2. Be SPECIFIC and ACTIONABLE (something that can be fixed or addressed by staff)
-      3. NOT be casual conversation, fun activities, general chat, or irrelevant content
-      4. NOT be fake, nonsense, test submissions, or promotional
+      CLASSIFY as one of three tiers:
+      - "genuine": Real campus problem, supervisor can take action
+      - "soft_block": Not malicious but not a real issue (negation, vague, "just testing", "I want to add a query", no actual problem stated)
+      - "fake": Clearly irrelevant, casual chat, timepass, nonsense
 
       Analyze and return ONLY valid JSON (no markdown, no backticks, no preamble):
       {
         "isGenuine": true/false,
+        "tier": "genuine" | "soft_block" | "fake",
         "relevanceScore": 0-100,
         "confidence": 0-100,
         "category": "Wi-Fi|Electrical|Safety|ERP|Library|Staff|Hostel|Exam|Fee|Other|Fake",
@@ -40,7 +43,6 @@ const validateQueryRelevance = async (title, description) => {
     const result = await model.generateContent(prompt);
     const response = result.response.text();
 
-    // Strip markdown code blocks if present
     const cleaned = response.replace(/```json|```/g, "").trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
 
@@ -50,23 +52,64 @@ const validateQueryRelevance = async (title, description) => {
       return parsed;
     }
 
-    // If JSON parsing fails, conservative fallback
-    console.warn("⚠️ Gemini returned non-JSON response, using strict fallback");
+    console.warn("⚠️ Gemini returned non-JSON, using strict fallback");
     return fallbackValidation(title, description);
   } catch (error) {
     console.error("Gemini API Error:", error.message);
-    // FIX 3: Don't silently allow on error — use strict fallback
     return fallbackValidation(title, description);
   }
 };
 
-// FIX 2: Fallback now validates description independently, not just combined text
 const fallbackValidation = (title, description) => {
   const titleText = title.toLowerCase();
   const descText = description.toLowerCase();
   const combinedText = `${titleText} ${descText}`;
 
-  // Genuine campus issue keywords — must appear in DESCRIPTION, not just title
+  const negationPatterns = [
+    "is not down",
+    "is not broken",
+    "is not an issue",
+    "is working fine",
+    "but i want to add",
+    "just want to add a query",
+    "just testing",
+    "checking if this works",
+    "want to add a query",
+    "i want to add",
+    "no issue",
+    "no problem",
+    "everything is fine",
+    "just to check",
+  ];
+
+  const fakePatterns = [
+    "lets go",
+    "let's go",
+    "are you coming",
+    "party",
+    "chill",
+    "hangout",
+    "what's up",
+    "how are you",
+    "hi there",
+    "hey guys",
+    "just saying",
+    "random",
+    "chalo",
+    "masti",
+    "timepass",
+    "fun time",
+    "testing 123",
+    "abc",
+    "asdf",
+    "dummy",
+    "haha",
+    "lol",
+    "lmao",
+    "xd",
+    "ok bye",
+  ];
+
   const genuineDescriptionPatterns = [
     "not working",
     "down",
@@ -97,7 +140,6 @@ const fallbackValidation = (title, description) => {
     "concern",
   ];
 
-  // Campus topic keywords — should appear somewhere (title or description)
   const campusTopics = [
     "wifi",
     "wi-fi",
@@ -152,94 +194,68 @@ const fallbackValidation = (title, description) => {
     "receipt",
   ];
 
-  // Casual / fake patterns
-  const fakePatterns = [
-    "lets go",
-    "let's go",
-    "are you coming",
-    "are you comming",
-    "party",
-    "chill",
-    "hangout",
-    "play",
-    "game",
-    "what's up",
-    "how are you",
-    "hello",
-    "hi there",
-    "hey guys",
-    "just saying",
-    "random",
-    "nothing",
-    "just like that",
-    "chalo",
-    "masti",
-    "timepass",
-    "enjoy",
-    "fun time",
-    "test",
-    "testing 123",
-    "abc",
-    "asdf",
-    "dummy",
-    "haha",
-    "lol",
-    "lmao",
-    "xd",
-    "ok bye",
-    "bye",
-  ];
-
+  const hasNegation = negationPatterns.some((p) => combinedText.includes(p));
+  const isFake = fakePatterns.some((p) => combinedText.includes(p));
   const hasCampusTopic = campusTopics.some((p) => combinedText.includes(p));
-  // FIX: Description must independently show there's a real problem
   const descriptionShowsProblem = genuineDescriptionPatterns.some((p) =>
     descText.includes(p),
   );
-  const isFake = fakePatterns.some((p) => combinedText.includes(p));
   const descriptionTooShort = description.trim().length < 20;
 
-  // Explicit fake content detected
+  if (hasNegation) {
+    return {
+      isGenuine: false,
+      tier: "soft_block",
+      relevanceScore: 30,
+      confidence: 85,
+      category: "Other",
+      reason:
+        "Student indicated there is no actual problem — not a genuine issue",
+      keyIssues: ["Negation detected — no real problem stated"],
+    };
+  }
+
   if (isFake) {
     return {
       isGenuine: false,
+      tier: "fake",
       relevanceScore: 5,
       confidence: 90,
       category: "Fake",
       reason: "Query contains casual conversation or non-campus content",
-      keyIssues: ["Casual language detected in description"],
+      keyIssues: ["Casual language detected"],
     };
   }
 
-  // Description is too short to be a real complaint
   if (descriptionTooShort) {
     return {
       isGenuine: false,
+      tier: "soft_block",
       relevanceScore: 15,
       confidence: 80,
-      category: "Fake",
-      reason: "Description is too short to describe a real campus issue",
-      keyIssues: ["Description must be at least 20 characters"],
+      category: "Other",
+      reason: "Description too short to describe a real campus issue",
+      keyIssues: ["Minimum description length not met"],
     };
   }
 
-  // Has campus topic BUT description doesn't describe an actual problem
-  // (e.g., title = "Electrical", desc = "Are you coming? Lets go")
   if (hasCampusTopic && !descriptionShowsProblem) {
     return {
       isGenuine: false,
+      tier: "soft_block",
       relevanceScore: 20,
       confidence: 85,
-      category: "Fake",
+      category: "Other",
       reason:
         "Title has campus keyword but description does not describe an actionable problem",
       keyIssues: ["Description lacks any problem statement"],
     };
   }
 
-  // Both topic and problem description present — likely genuine
   if (hasCampusTopic && descriptionShowsProblem) {
     return {
       isGenuine: true,
+      tier: "genuine",
       relevanceScore: 75,
       confidence: 65,
       category: "Other",
@@ -248,9 +264,9 @@ const fallbackValidation = (title, description) => {
     };
   }
 
-  // No campus topic at all
   return {
     isGenuine: false,
+    tier: "fake",
     relevanceScore: 20,
     confidence: 70,
     category: "Fake",

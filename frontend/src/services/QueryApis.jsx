@@ -67,3 +67,10 @@ export const getQueryById = (queryId) => {
 export const markAsSpam = (queryId, reason) => {
   return api.put(`/queries/mark-spam/${queryId}`, { reason });
 };
+
+export const batchResolveQueries = (
+  queryIds,
+  resolutionNote = "Batch resolved from similar queries",
+) => {
+  return api.post("/queries/batch-resolve", { queryIds, resolutionNote });
+};
