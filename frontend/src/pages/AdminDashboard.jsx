@@ -10,6 +10,8 @@ import {
 import "../css/AdminDashboard.css";
 import { signupApi, sendOtpApi } from "../services/GetService";
 import { getCriticalEscalations } from "../services/QueryApis";
+import WorkloadStats from "../components/workload-stats";
+
 const AdminDashboard = () => {
   const user = useSelector((state) => state.user.data);
   const navigate = useNavigate();
@@ -705,6 +707,13 @@ const AdminDashboard = () => {
         >
           ⚠️ Escalations
         </button>
+
+        <button
+          className={`filter-btn ${activeTab === "workload" ? "active" : "inactive"}`}
+          onClick={() => setActiveTab("workload")}
+        >
+          📊 Workload
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -712,6 +721,7 @@ const AdminDashboard = () => {
       {activeTab === "queries" && renderAllQueries()}
       {activeTab === "supervisors" && renderSupervisors()}
       {activeTab === "escalations" && renderEscalations()}
+      {activeTab === "workload" && <WorkloadStats />}
 
       {/* Modal for creating new user */}
       {showCreateUserModal && (

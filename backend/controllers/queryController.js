@@ -6,6 +6,7 @@ const mailSender = require("../utils/mailSender");
 const { analyzeWithJava } = require("../services/javaAnalyzerService");
 const { detectSpam } = require("../services/spamDetector");
 const { validateQueryRelevance } = require("../services/aiValidator");
+const { autoAssignQuery } = require("./workload-controller");
 
 // ============================================================
 // EMAIL TEMPLATES
@@ -1021,6 +1022,12 @@ exports.createQuery = async (req, res) => {
 
     const io = req.app.get("io");
     if (io) io.emit("queryCreated", newQuery);
+
+    // Only auto-assign clean queries, not suspicious ones
+    if (!spamCheck.isSuspicious) {
+      const { autoAssignQuery } = require("./workload-controller");
+      await autoAssignQuery(newQuery);
+    }
 
     const response = {
       success: true,
