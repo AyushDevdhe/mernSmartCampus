@@ -19,6 +19,12 @@ const {
   unblockStudent, // Import from controller
 } = require("../controllers/userController");
 
+const {
+  getAutoAssignSetting,
+  updateAutoAssignSetting,
+  getWorkloadStats,
+} = require("../controllers/workload-controller");
+
 // Public routes
 router.post("/send-otp", sendOTP);
 router.post("/sign-up", signUp);
@@ -35,5 +41,10 @@ router.get("/available-supervisors", verifyJWT, getAvailableSupervisors);
 // Blocked students routes
 router.get("/blocked-students", verifyJWT, getBlockedStudents);
 router.put("/unblock/:studentId", verifyJWT, unblockStudent);
+
+// Workload balancer routes
+router.get("/auto-assign-setting", verifyJWT, getAutoAssignSetting);
+router.put("/auto-assign-setting", verifyJWT, updateAutoAssignSetting);
+router.get("/workload-stats", verifyJWT, getWorkloadStats);
 
 module.exports = router;
